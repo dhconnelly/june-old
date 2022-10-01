@@ -12,10 +12,4 @@ you need bazel: https://bazel.build/install or `brew install bazel` on mac
 
 ## usage
 
-to run the repl:
-
-    ./bazel-bin/src/june
-
-to run a script:
-
     ./bazel-bin/src/june <file>
