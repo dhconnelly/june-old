@@ -1,0 +1,21 @@
+# june
+
+a compiler and vm for a small lisp implemented in c++
+
+## prerequisites
+
+you need bazel: https://bazel.build/install or `brew install bazel` on mac
+
+## building
+
+    bazel build //src:june
+
+## usage
+
+to run the repl:
+
+    ./bazel-bin/src/june
+
+to run a script:
+
+    ./bazel-bin/src/june <file>
