@@ -1,8 +1,11 @@
+#include <fstream>
 #include <iostream>
+#include <sstream>
 #include <vector>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/str_format.h"
 #include "compiler.h"
 #include "parser.h"
 #include "scanner.h"
@@ -13,7 +16,18 @@ void die(std::string_view reason) {
     exit(EXIT_FAILURE);
 }
 
-absl::StatusOr<std::string> read_file(std::string_view path) { return ""; }
+absl::StatusOr<std::string> read_file(std::string_view path) {
+    std::ifstream is(path);
+    if (!is) {
+        die(absl::StrFormat("can't open file %s: %s", path, strerror(errno)));
+    }
+    // https://stackoverflow.com/a/2602258
+    std::stringstream buf;
+    buf << is.rdbuf();
+    std::string text = buf.str();
+    absl::PrintF("read %d bytes\n", text.size());
+    return text;
+}
 
 void run(std::string_view path) {
     auto text = read_file(path);
