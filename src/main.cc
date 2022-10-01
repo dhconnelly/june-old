@@ -16,6 +16,10 @@ void die(std::string_view reason) {
     exit(EXIT_FAILURE);
 }
 
+void report(absl::Status status) {
+    if (!status.ok()) std::cerr << status.message() << std::endl;
+}
+
 absl::StatusOr<std::string> read_file(std::string_view path) {
     std::ifstream is(path);
     if (!is) {
@@ -49,6 +53,13 @@ void repl() {
         std::cout << "> ";
         if (!std::getline(std::cin, line)) break;
         auto toks = scan(line);
+        if (!toks.ok()) {
+            report(toks.status());
+            continue;
+        }
+        for (const auto& tok : toks.value()) {
+            absl::PrintF("%d %s %s\n", tok.line, to_string(tok.typ), tok.cargo);
+        }
         auto exprs = parse(toks.value());
         auto code = compiler.compile(exprs.value());
         if (auto status = vm.execute(code.value()); !status.ok()) {

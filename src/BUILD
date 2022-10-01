@@ -5,6 +5,7 @@ cc_library(
 
 cc_library(
     name = "token",
+    srcs = ["token.cc"],
     hdrs = ["token.h"],
 )
 

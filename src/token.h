@@ -7,6 +7,8 @@ enum class TokenType {
     Bool,
 };
 
+std::string to_string(TokenType typ);
+
 struct Token {
     TokenType typ;
     int line;
