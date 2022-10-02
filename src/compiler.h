@@ -1,6 +1,7 @@
 #ifndef COMPILER_H_
 #define COMPILER_H_
 
+#include <memory>
 #include <vector>
 
 #include "absl/status/statusor.h"
@@ -8,7 +9,8 @@
 
 class Compiler {
    public:
-    absl::StatusOr<std::vector<char>> compile(const std::vector<Expr>& exprs);
+    absl::StatusOr<std::vector<char>> compile(
+        const std::vector<std::unique_ptr<Expr>>& exprs);
 };
 
 #endif  // COMPILER_H_

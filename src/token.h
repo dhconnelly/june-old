@@ -13,6 +13,8 @@ struct Token {
     TokenType typ;
     int line;
     std::string cargo;
+
+    std::string str() const;
 };
 
 #endif  // TOKEN_H_

@@ -52,15 +52,22 @@ void repl() {
     while (true) {
         std::cout << "> ";
         if (!std::getline(std::cin, line)) break;
+
         auto toks = scan(line);
         if (!toks.ok()) {
             report(toks.status());
             continue;
         }
-        for (const auto& tok : toks.value()) {
-            absl::PrintF("%d %s %s\n", tok.line, to_string(tok.typ), tok.cargo);
-        }
+        for (const auto& tok : toks.value()) absl::PrintF("%s\n", tok.str());
+
         auto exprs = parse(toks.value());
+        if (!exprs.ok()) {
+            report(exprs.status());
+            continue;
+        }
+        for (const auto& expr : exprs.value())
+            absl::PrintF("%s\n", expr->str());
+
         auto code = compiler.compile(exprs.value());
         if (auto status = vm.execute(code.value()); !status.ok()) {
             die(status.message());

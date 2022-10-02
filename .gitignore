@@ -2,3 +2,4 @@ bazel-bin
 bazel-june
 bazel-out
 bazel-testlogs
+.vscode

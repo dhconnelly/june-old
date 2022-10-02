@@ -4,11 +4,6 @@
 
 #include "absl/strings/str_format.h"
 
-char Scanner::advance() {
-    assert(!at_end());
-    return text_[pos_++];
-}
-
 absl::Status Scanner::invalid(std::string_view message) const {
     return absl::InvalidArgumentError(
         absl::StrFormat("[line %d] scanner: %s", line_, message));
@@ -25,16 +20,23 @@ Token Scanner::token(TokenType typ) const {
 absl::StatusOr<std::optional<Token>> Scanner::next() {
     start_ = pos_;
     while (!at_end()) {
-        char ch = advance();
+        char ch = advance().value();
         switch (ch) {
             case '\n': line_++;
             case ' ':
-            case '\t': start_ = pos_; continue;
+            case '\t': {
+                start_ = pos_;
+                continue;
+            }
+
             case '#': {
-                char ch = advance();
+                auto result = advance();
+                if (!result) return invalid("unexpected eof");
+                char ch = result.value();
                 if (ch != 't' && ch != 'f') return invalid("bad bool literal");
                 return token(TokenType::Bool);
             }
+
             default: return invalid("unknown token");
         }
     }

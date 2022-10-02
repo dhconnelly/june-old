@@ -1,12 +1,19 @@
 cc_library(
     name = "ast",
+    srcs = ["ast.cc"],
     hdrs = ["ast.h"],
+    deps = [
+        "@com_google_absl//absl/strings:str_format",
+    ],
 )
 
 cc_library(
     name = "token",
     srcs = ["token.cc"],
     hdrs = ["token.h"],
+    deps = [
+        "@com_google_absl//absl/strings:str_format",
+    ],
 )
 
 cc_library(

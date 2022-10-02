@@ -14,11 +14,15 @@ class Scanner {
     Scanner(std::string_view text) : text_(text) {}
     absl::StatusOr<std::optional<Token>> next();
     bool at_end() const { return pos_ >= text_.size(); }
-    char advance();
 
    private:
     absl::Status invalid(std::string_view message) const;
     Token token(TokenType typ) const;
+
+    std::optional<char> advance() {
+        if (at_end()) return {};
+        return text_[pos_++];
+    }
 
     int start_ = 0;
     int pos_ = 0;
