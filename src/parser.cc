@@ -35,7 +35,7 @@ absl::StatusOr<Token> Parser::match(TokenType want) {
     return advance().value();
 }
 
-absl::StatusOr<std::unique_ptr<Literal<bool>>> Parser::bool_lit() {
+absl::StatusOr<std::unique_ptr<BoolLiteral>> Parser::bool_lit() {
     auto result = match(TokenType::Bool);
     if (!result.ok()) return result.status();
     auto tok = result.value();
@@ -43,7 +43,7 @@ absl::StatusOr<std::unique_ptr<Literal<bool>>> Parser::bool_lit() {
     if (tok.cargo == "#t") value = true;
     else if (tok.cargo == "#f") value = false;
     else return invalid(TokenType::Bool, tok);
-    return std::make_unique<Literal<bool>>(result.value().line, value);
+    return std::make_unique<BoolLiteral>(result.value().line, value);
 }
 
 absl::StatusOr<std::unique_ptr<Expr>> Parser::expr() {

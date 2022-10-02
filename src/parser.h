@@ -17,7 +17,7 @@ class Parser {
 
     absl::StatusOr<std::unique_ptr<Stmt>> stmt();
     absl::StatusOr<std::unique_ptr<Expr>> expr();
-    absl::StatusOr<std::unique_ptr<Literal<bool>>> bool_lit();
+    absl::StatusOr<std::unique_ptr<BoolLiteral>> bool_lit();
 
    private:
     std::optional<const Token*> peek() const;

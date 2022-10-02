@@ -7,42 +7,54 @@
 
 class Node {
    public:
+    Node(int line) : line_(line) {}
     virtual ~Node() {}
-    virtual int line() const = 0;
     virtual std::string str() const = 0;
+    int line() const { return line_; }
+
+   private:
+    int line_;
 };
 
-class Stmt : public Node {};
-
-class Expr : public Node {};
-
-class ExprStmt : public Stmt {
+class Stmt : public Node {
    public:
-    explicit ExprStmt(std::unique_ptr<Expr> expr) : expr_(std::move(expr)) {}
+    Stmt(int line) : Node(line) {}
+};
+
+class Expr : public Node {
+   public:
+    Expr(int line) : Node(line) {}
+};
+
+class ExprStmt final : public Stmt {
+   public:
+    explicit ExprStmt(std::unique_ptr<Expr> expr)
+        : Stmt(expr->line()), expr_(std::move(expr)) {}
     std::string str() const override {
         return absl::StrFormat("ExprStmt(%s)", expr_->str());
     }
-    int line() const override { return expr_->line(); }
 
    private:
     std::unique_ptr<Expr> expr_;
 };
 
-std::string print_literal(bool value);
-
 template <typename T>
 class Literal : public Expr {
    public:
-    Literal(int line, T value) : line_(line), value_(value) {}
-    ~Literal() override {}
-
+    Literal(int line, T value) : Expr(line), value_(value) {}
     const T value() const { return value_; }
-    int line() const override { return line_; }
-    std::string str() const override { return print_literal(value_); }
 
    private:
-    int line_;
     T value_;
+};
+
+class BoolLiteral final : public Literal<bool> {
+   public:
+    BoolLiteral(int line, bool value) : Literal(line, value) {}
+    std::string str() const {
+        const char* s = value() ? "true" : "false";
+        return absl::StrFormat("BoolLiteral(line=%d, value=%s)", line(), s);
+    }
 };
 
 #endif  // AST_H_
