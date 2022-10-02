@@ -9,10 +9,13 @@ class VM {
     absl::Status execute(const std::vector<char>& code_);
 
    private:
+    absl::Status invalid(std::string_view message) const;
+
     absl::Status step();
 
     absl::Status push();
     absl::Status pop();
+    absl::Status print();
 
     int pc_ = 0;
     const std::vector<char>* code_ = nullptr;

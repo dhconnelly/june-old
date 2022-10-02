@@ -47,6 +47,7 @@ void run(std::string_view path) {
 
 void repl() {
     Compiler compiler;
+    compiler.set_interactive(true);
     VM vm;
     std::string line;
     while (true) {

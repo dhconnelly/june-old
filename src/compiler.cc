@@ -3,6 +3,7 @@
 absl::Status Compiler::visit(const ExprStmt& es) {
     auto result = es.expr().accept(this);
     if (!result.ok()) return result;
+    if (interactive_) push(Opcode::Print);
     push(Opcode::Pop);
     return absl::OkStatus();
 }

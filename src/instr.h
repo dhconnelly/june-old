@@ -11,6 +11,8 @@ enum class Opcode {
     Push = 1,
     // [Pop]
     Pop = 2,
+    // [Print]
+    Print = 3,
 };
 
 void serialize_opcode(Opcode op, std::vector<char>* buf);
