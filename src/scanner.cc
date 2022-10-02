@@ -4,6 +4,20 @@
 
 namespace {
 bool is_whitespace(char ch) { return ch == '\n' || ch == '\t' || ch == ' '; }
+bool is_symbol(char ch) {
+    switch (ch) {
+        case '+':
+        case '/':
+        case '*':
+        case '%':
+        case '=':
+        case '<':
+        case '>':
+        case '-': return true;
+        default: return ('a' <= ch && ch <= 'z') || ('A' <= ch && ch <= 'Z');
+    }
+}
+bool is_numeric(char ch) { return '0' <= ch && ch <= '9'; }
 
 bool is_terminating(std::optional<char> ch) {
     return !ch.has_value() || is_whitespace(ch.value()) || ch.value() == ')';
@@ -28,6 +42,18 @@ Token Scanner::token(TokenType typ) const {
     return Token{.line = line_, .cargo = cargo, .typ = typ};
 }
 
+absl::StatusOr<Token> Scanner::symbol() {
+    while (true) {
+        auto ch = peek();
+        if (is_terminating(ch)) break;
+        if (!is_symbol(ch.value()) && !is_numeric(ch.value())) {
+            return invalid(absl::StrFormat("invalid symbol: %c", ch.value()));
+        }
+        advance();
+    }
+    return token(TokenType::Symbol);
+}
+
 absl::StatusOr<std::optional<Token>> Scanner::next() {
     start_ = pos_;
     while (!at_end()) {
@@ -40,6 +66,9 @@ absl::StatusOr<std::optional<Token>> Scanner::next() {
                 continue;
             }
 
+            case '(': return token(TokenType::Lparen);
+            case ')': return token(TokenType::Rparen);
+
             case '#': {
                 auto ch2 = advance();
                 if (!ch2) return invalid("unexpected eof");
@@ -49,7 +78,10 @@ absl::StatusOr<std::optional<Token>> Scanner::next() {
                 return token(TokenType::Bool);
             }
 
-            default: return invalid(absl::StrFormat("invalid token: %c", ch));
+            default: {
+                if (is_symbol(ch)) return symbol();
+                return invalid(absl::StrFormat("invalid token: %c", ch));
+            }
         }
     }
     return std::nullopt;

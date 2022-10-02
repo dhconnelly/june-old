@@ -5,6 +5,9 @@
 
 enum class TokenType {
     Bool,
+    Lparen,
+    Rparen,
+    Symbol,
 };
 
 std::string to_string(TokenType typ);

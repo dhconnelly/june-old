@@ -22,6 +22,8 @@ private:
     std::optional<char> peek() const;
     std::optional<char> advance();
 
+    absl::StatusOr<Token> symbol();
+
     int start_ = 0;
     int pos_ = 0;
     int line_ = 1;

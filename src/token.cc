@@ -5,6 +5,9 @@
 std::string to_string(TokenType typ) {
     switch (typ) {
         case TokenType::Bool: return "Bool";
+        case TokenType::Lparen: return "Lparen";
+        case TokenType::Rparen: return "Rparen";
+        case TokenType::Symbol: return "Symbol";
     }
 }
 
