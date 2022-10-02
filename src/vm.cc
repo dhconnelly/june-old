@@ -13,27 +13,27 @@ absl::Status VM::invalid(std::string_view message) const {
 absl::Status VM::push() {
     auto value = Value::deserialize(*code_, pc_);
     if (!value.ok()) return value.status();
-    // std::cout << "PUSH " << value->str() << std::endl;
-    pc_ += value.value()->size();
+    log("PUSH " + value.value()->str());
+    pc_ += (*value)->size();
     stack_.push_back(std::move(value.value()));
     return absl::OkStatus();
 }
 
 absl::Status VM::pop() {
     if (stack_.empty()) return invalid("can't pop empty stack");
-    // std::cout << "POP\n";
+    log("POP");
     stack_.pop_back();
     return absl::OkStatus();
 }
 
 absl::Status VM::print() {
     if (stack_.empty()) return invalid("can't print empty stack");
-    std::cout << stack_.back()->str() << std::endl;
+    log("PRINT");
+    absl::PrintF("%s\n", stack_.back()->str());
     return absl::OkStatus();
 }
 
 absl::Status VM::step() {
-    // std::cout << "pc = " << pc_ << std::endl;
     auto op = deserialize_opcode((*code_)[pc_++]);
     if (!op.ok()) return op.status();
     switch (op.value()) {
@@ -42,6 +42,10 @@ absl::Status VM::step() {
         case Opcode::Print: return print();
     }
     return invalid(absl::StrFormat("invalid opcode: %d", op.value()));
+}
+
+void VM::log(std::string_view msg) {
+    if (log_) absl::PrintF("%4d\t%s\n", pc_, msg);
 }
 
 absl::Status VM::execute(const std::vector<char>& code) {

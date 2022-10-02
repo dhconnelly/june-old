@@ -10,7 +10,7 @@
 #include "value.h"
 
 class Compiler final : public Visitor {
-   public:
+public:
     absl::StatusOr<std::vector<char>> compile(
         const std::vector<std::unique_ptr<Stmt>>& stmts);
 
@@ -22,7 +22,7 @@ class Compiler final : public Visitor {
     absl::Status visit(const ExprStmt& es) override;
     absl::Status visit(const BoolLiteral& lit) override;
 
-   private:
+private:
     void push(Opcode op) { serialize_opcode(op, &code_); }
     void push(bool value) { BoolValue(value).serialize(&code_); }
 

@@ -9,13 +9,13 @@
 #include "token.h"
 
 class Scanner final {
-   public:
+public:
     // |text| must outlive the constructed Scanner
     Scanner(std::string_view text) : text_(text) {}
     absl::StatusOr<std::optional<Token>> next();
     bool at_end() const { return pos_ >= text_.size(); }
 
-   private:
+private:
     absl::Status invalid(std::string_view message) const;
     Token token(TokenType typ) const;
 

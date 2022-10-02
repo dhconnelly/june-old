@@ -79,14 +79,25 @@ cc_library(
     ],
 )
 
-cc_binary(
-    name = "june",
-    srcs = ["main.cc"],
+cc_library(
+    name = "evaluator",
+    srcs = ["evaluator.cc"],
+    hdrs = ["evaluator.h"],
     deps = [
         ":compiler",
         ":parser",
         ":scanner",
         ":vm",
+    ],
+)
+
+cc_binary(
+    name = "june",
+    srcs = ["main.cc"],
+    deps = [
+        ":evaluator",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
         "@com_google_absl//absl/status:statusor",
     ],
 )

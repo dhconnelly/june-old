@@ -10,7 +10,7 @@
 #include "token.h"
 
 class Parser final {
-   public:
+public:
     // |toks| must outlive the constructed Parser
     explicit Parser(const std::vector<Token>& toks) : toks_(toks) {}
     bool at_end() const { return pos_ >= toks_.size(); }
@@ -19,7 +19,7 @@ class Parser final {
     absl::StatusOr<std::unique_ptr<Expr>> expr();
     absl::StatusOr<std::unique_ptr<BoolLiteral>> bool_lit();
 
-   private:
+private:
     std::optional<const Token*> peek() const;
     std::optional<Token> advance();
     absl::StatusOr<Token> match(TokenType typ);
