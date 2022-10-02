@@ -18,6 +18,7 @@ public:
     absl::StatusOr<std::unique_ptr<Stmt>> stmt();
     absl::StatusOr<std::unique_ptr<Expr>> expr();
     absl::StatusOr<std::unique_ptr<BoolLiteral>> bool_lit();
+    absl::StatusOr<std::unique_ptr<IntLiteral>> int_lit();
 
 private:
     std::optional<const Token*> peek() const;

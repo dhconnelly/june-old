@@ -1,5 +1,7 @@
 #include "parser.h"
 
+#include <stdexcept>
+
 #include "absl/strings/str_format.h"
 
 namespace {
@@ -45,11 +47,25 @@ absl::StatusOr<std::unique_ptr<BoolLiteral>> Parser::bool_lit() {
     return std::make_unique<BoolLiteral>(tok->line, bool_value.value());
 }
 
+absl::StatusOr<std::unique_ptr<IntLiteral>> Parser::int_lit() {
+    auto tok = match(TokenType::Int);
+    if (!tok.ok()) return tok.status();
+    int int_value;
+    try {
+        int_value = std::stoi(tok.value().cargo);
+    } catch (std::out_of_range& e) {
+        return err(tok->line,
+                   absl::StrFormat("int out of range: %s", tok->cargo));
+    }
+    return std::make_unique<IntLiteral>(tok->line, int_value);
+}
+
 absl::StatusOr<std::unique_ptr<Expr>> Parser::expr() {
     auto tok = peek();
     if (!tok) return unexpected_eof();
     switch (tok.value()->typ) {
         case TokenType::Bool: return bool_lit();
+        case TokenType::Int: return int_lit();
     }
     return err(tok.value()->line, "invalid expr");
 }

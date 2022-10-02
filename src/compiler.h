@@ -21,10 +21,12 @@ public:
     // Visitor:
     absl::Status visit(const ExprStmt& es) override;
     absl::Status visit(const BoolLiteral& lit) override;
+    absl::Status visit(const IntLiteral& lit) override;
 
 private:
     void push(Opcode op) { serialize_opcode(op, &code_); }
     void push(bool value) { BoolValue(value).serialize(&code_); }
+    void push(int value) { IntValue(value).serialize(&code_); }
 
     bool interactive_ = false;
     std::vector<char> code_;

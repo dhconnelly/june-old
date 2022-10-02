@@ -23,7 +23,7 @@ void Evaluator::evaluate(std::string_view text) {
         return;
     }
     if (log_code_) {
-        for (char ch : code.value()) absl::PrintF("0x%04X\n", ch);
+        for (char ch : code.value()) absl::PrintF("0x%02X\n", ch);
     }
     auto status = vm_.execute(code.value());
     if (!status.ok()) {

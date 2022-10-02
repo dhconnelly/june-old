@@ -13,6 +13,12 @@ absl::Status Compiler::visit(const BoolLiteral& lit) {
     return absl::OkStatus();
 }
 
+absl::Status Compiler::visit(const IntLiteral& lit) {
+    push(Opcode::Push);
+    push(lit.value());
+    return absl::OkStatus();
+}
+
 absl::StatusOr<std::vector<char>> Compiler::compile(
     const std::vector<std::unique_ptr<Stmt>>& stmts) {
     code_.clear();

@@ -1,4 +1,3 @@
 build --cxxopt=-std=c++1z
 build --cxxopt=-stdlib=libc++
 build --cxxopt=-Wc++17-extensions
-build --cxxopt=-fno-exceptions
