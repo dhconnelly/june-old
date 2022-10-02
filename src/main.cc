@@ -59,25 +59,21 @@ void repl() {
             report(toks.status());
             continue;
         }
-        for (const auto& tok : toks.value()) absl::PrintF("%s\n", tok.str());
+        // for (const auto& tok : toks.value()) absl::PrintF("%s\n", tok.str());
 
         auto stmts = parse(toks.value());
         if (!stmts.ok()) {
             report(stmts.status());
             continue;
         }
-        for (const auto& stmt : stmts.value()) {
-            absl::PrintF("%s\n", stmt->str());
-        }
+        // for (const auto& st : stmts.value()) absl::PrintF("%s\n", st->str());
 
         auto code = compiler.compile(stmts.value());
         if (!code.ok()) {
             report(code.status());
             continue;
         }
-        for (const char ch : code.value()) {
-            absl::PrintF("0x%02x\n", ch);
-        }
+        // for (const char ch : code.value()) absl::PrintF("0x%02x\n", ch);
 
         if (auto status = vm.execute(code.value()); !status.ok()) {
             report(status);

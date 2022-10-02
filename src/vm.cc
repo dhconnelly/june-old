@@ -14,7 +14,7 @@ absl::Status VM::push() {
     auto maybe_value = Value::deserialize(*code_, pc_);
     if (!maybe_value.ok()) return maybe_value.status();
     auto value = std::move(maybe_value.value());
-    std::cout << "PUSH " << value->str() << std::endl;
+    // std::cout << "PUSH " << value->str() << std::endl;
     pc_ += value->size();
     stack_.push_back(std::move(value));
     return absl::OkStatus();
@@ -22,7 +22,7 @@ absl::Status VM::push() {
 
 absl::Status VM::pop() {
     if (stack_.empty()) return invalid("can't pop empty stack");
-    std::cout << "POP\n";
+    // std::cout << "POP\n";
     stack_.pop_back();
     return absl::OkStatus();
 }
@@ -34,7 +34,7 @@ absl::Status VM::print() {
 }
 
 absl::Status VM::step() {
-    std::cout << "pc = " << pc_ << std::endl;
+    // std::cout << "pc = " << pc_ << std::endl;
     auto maybe_op = deserialize_opcode((*code_)[pc_++]);
     if (!maybe_op.ok()) return maybe_op.status();
     auto op = maybe_op.value();
