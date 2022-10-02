@@ -4,15 +4,17 @@
 #include "absl/status/status.h"
 #include "value.h"
 
-class VM {
+class VM final {
    public:
-    absl::Status execute(const std::vector<char>& code_);
+    absl::Status execute(const std::vector<char>& code);
 
    private:
     absl::Status invalid(std::string_view message) const;
 
+    // executive the next instruction
     absl::Status step();
 
+    // opcode handlers
     absl::Status push();
     absl::Status pop();
     absl::Status print();

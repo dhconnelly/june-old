@@ -11,13 +11,11 @@ bool is_terminating(std::optional<char> ch) {
 }  // namespace
 
 std::optional<char> Scanner::advance() {
-    if (at_end()) return {};
-    return text_[pos_++];
+    return at_end() ? std::nullopt : std::optional{text_[pos_++]};
 }
 
 std::optional<char> Scanner::peek() const {
-    if (at_end()) return {};
-    return text_[pos_];
+    return at_end() ? std::nullopt : std::optional{text_[pos_]};
 }
 
 absl::Status Scanner::invalid(std::string_view message) const {
@@ -26,11 +24,8 @@ absl::Status Scanner::invalid(std::string_view message) const {
 }
 
 Token Scanner::token(TokenType typ) const {
-    return Token{
-        .line = line_,
-        .cargo = std::string(text_.substr(start_, pos_ - start_)),
-        .typ = typ,
-    };
+    std::string cargo(text_.substr(start_, pos_ - start_));
+    return Token{.line = line_, .cargo = cargo, .typ = typ};
 }
 
 absl::StatusOr<std::optional<Token>> Scanner::next() {
@@ -46,10 +41,9 @@ absl::StatusOr<std::optional<Token>> Scanner::next() {
             }
 
             case '#': {
-                auto result = advance();
-                if (!result) return invalid("unexpected eof");
-                char ch = result.value();
-                if ((ch != 't' && ch != 'f') || !is_terminating(peek())) {
+                auto ch2 = advance();
+                if (!ch2) return invalid("unexpected eof");
+                if ((*ch2 != 't' && *ch2 != 'f') || !is_terminating(peek())) {
                     return invalid("bad bool literal");
                 }
                 return token(TokenType::Bool);
@@ -65,11 +59,10 @@ absl::StatusOr<std::vector<Token>> scan(std::string_view text) {
     Scanner scan(text);
     std::vector<Token> toks;
     while (!scan.at_end()) {
-        auto result = scan.next();
-        if (!result.ok()) return result.status();
-        auto tok = result.value();
-        if (!tok) break;
-        toks.push_back(tok.value());
+        auto tok = scan.next();
+        if (!tok.ok()) return tok.status();
+        if (!tok->has_value()) break;
+        toks.push_back(tok->value());
     }
     return toks;
 }

@@ -9,7 +9,7 @@ enum class TokenType {
 
 std::string to_string(TokenType typ);
 
-struct Token {
+struct Token final {
     TokenType typ;
     int line;
     std::string cargo;

@@ -19,57 +19,55 @@ absl::Status invalid(TokenType want, const Token& tok) {
 }  // namespace
 
 std::optional<const Token*> Parser::peek() const {
-    if (at_end()) return {};
-    return &toks_[pos_];
+    return at_end() ? std::nullopt : std::optional{&toks_[pos_]};
 }
 
 std::optional<Token> Parser::advance() {
-    if (at_end()) return {};
-    return toks_[pos_++];
+    return at_end() ? std::nullopt : std::optional{toks_[pos_++]};
 }
 
 absl::StatusOr<Token> Parser::match(TokenType want) {
-    auto result = peek();
-    if (!result) return unexpected_eof();
-    if (result.value()->typ != want) return invalid(want, *result.value());
+    auto tok = peek();
+    if (!tok) return unexpected_eof();
+    if (tok.value()->typ != want) return invalid(want, *tok.value());
     return advance().value();
 }
 
 absl::StatusOr<std::unique_ptr<BoolLiteral>> Parser::bool_lit() {
-    auto result = match(TokenType::Bool);
-    if (!result.ok()) return result.status();
-    auto tok = result.value();
-    bool value;
-    if (tok.cargo == "#t") value = true;
-    else if (tok.cargo == "#f") value = false;
-    else return invalid(TokenType::Bool, tok);
-    return std::make_unique<BoolLiteral>(result.value().line, value);
+    auto tok = match(TokenType::Bool);
+    if (!tok.ok()) return tok.status();
+    auto bool_value = [&tok]() -> absl::StatusOr<bool> {
+        if (tok->cargo == "#t") return true;
+        if (tok->cargo == "#f") return false;
+        return invalid(TokenType::Bool, *tok);
+    }();
+    if (!bool_value.ok()) return bool_value.status();
+    return std::make_unique<BoolLiteral>(tok->line, bool_value.value());
 }
 
 absl::StatusOr<std::unique_ptr<Expr>> Parser::expr() {
-    auto result = peek();
-    if (!result) return unexpected_eof();
-    const auto& tok = *result.value();
-    switch (tok.typ) {
+    auto tok = peek();
+    if (!tok) return unexpected_eof();
+    switch (tok.value()->typ) {
         case TokenType::Bool: return bool_lit();
     }
-    return err(tok.line, "invalid expr");
+    return err(tok.value()->line, "invalid expr");
 }
 
 absl::StatusOr<std::unique_ptr<Stmt>> Parser::stmt() {
-    auto result = expr();
-    if (!result.ok()) return result.status();
-    return std::make_unique<ExprStmt>(std::move(result.value()));
+    auto e = expr();
+    if (!e.ok()) return e.status();
+    return std::make_unique<ExprStmt>(std::move(e.value()));
 }
 
 absl::StatusOr<std::vector<std::unique_ptr<Stmt>>> parse(
     const std::vector<Token>& toks) {
     Parser parse(toks);
-    std::vector<std::unique_ptr<Stmt>> exprs;
+    std::vector<std::unique_ptr<Stmt>> stmts;
     while (!parse.at_end()) {
-        auto result = parse.stmt();
-        if (!result.ok()) return result.status();
-        exprs.push_back(std::move(result.value()));
+        auto st = parse.stmt();
+        if (!st.ok()) return st.status();
+        stmts.push_back(std::move(st.value()));
     }
-    return exprs;
+    return stmts;
 }

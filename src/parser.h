@@ -9,7 +9,7 @@
 #include "ast.h"
 #include "token.h"
 
-class Parser {
+class Parser final {
    public:
     // |toks| must outlive the constructed Parser
     explicit Parser(const std::vector<Token>& toks) : toks_(toks) {}

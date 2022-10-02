@@ -9,10 +9,13 @@
 #include "instr.h"
 #include "value.h"
 
-class Compiler : public Visitor {
+class Compiler final : public Visitor {
    public:
     absl::StatusOr<std::vector<char>> compile(
         const std::vector<std::unique_ptr<Stmt>>& stmts);
+
+    // interactive mode prints the value that is on top of the stack after
+    // each statement
     void set_interactive(bool interactive) { interactive_ = interactive; }
 
     // Visitor:

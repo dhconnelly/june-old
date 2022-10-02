@@ -8,7 +8,7 @@
 #include "absl/status/statusor.h"
 #include "token.h"
 
-class Scanner {
+class Scanner final {
    public:
     // |text| must outlive the constructed Scanner
     Scanner(std::string_view text) : text_(text) {}

@@ -24,7 +24,7 @@ class Value {
     virtual int value_size() const = 0;
 };
 
-class BoolValue : public Value {
+class BoolValue final : public Value {
    public:
     BoolValue(bool value) : value_(value) {}
     void serialize(std::vector<char>* buf) const override;
