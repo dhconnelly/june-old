@@ -1,8 +1,25 @@
 cc_library(
+    name = "instr",
+    srcs = ["instr.cc"],
+    hdrs = ["instr.h"],
+    deps = [
+    ],
+)
+
+cc_library(
+    name = "value",
+    srcs = ["value.cc"],
+    hdrs = ["value.h"],
+    deps = [
+    ],
+)
+
+cc_library(
     name = "ast",
     srcs = ["ast.cc"],
     hdrs = ["ast.h"],
     deps = [
+        "@com_google_absl//absl/status",
         "@com_google_absl//absl/strings:str_format",
     ],
 )
@@ -31,6 +48,8 @@ cc_library(
     hdrs = ["compiler.h"],
     deps = [
         ":ast",
+        ":instr",
+        ":value",
         "@com_google_absl//absl/status:statusor",
     ],
 )

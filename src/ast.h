@@ -3,7 +3,17 @@
 
 #include <string>
 
+#include "absl/status/status.h"
 #include "absl/strings/str_format.h"
+
+class ExprStmt;
+class BoolLiteral;
+
+class Visitor {
+   public:
+    virtual absl::Status visit(const ExprStmt&) = 0;
+    virtual absl::Status visit(const BoolLiteral&) = 0;
+};
 
 class Node {
    public:
@@ -11,6 +21,7 @@ class Node {
     virtual ~Node() {}
     virtual std::string str() const = 0;
     int line() const { return line_; }
+    virtual absl::Status accept(Visitor* v) const = 0;
 
    private:
     int line_;
@@ -30,9 +41,11 @@ class ExprStmt final : public Stmt {
    public:
     explicit ExprStmt(std::unique_ptr<Expr> expr)
         : Stmt(expr->line()), expr_(std::move(expr)) {}
+    absl::Status accept(Visitor* v) const override { return v->visit(*this); }
     std::string str() const override {
         return absl::StrFormat("ExprStmt(%s)", expr_->str());
     }
+    const Expr& expr() const { return *expr_; }
 
    private:
     std::unique_ptr<Expr> expr_;
@@ -51,7 +64,8 @@ class Literal : public Expr {
 class BoolLiteral final : public Literal<bool> {
    public:
     BoolLiteral(int line, bool value) : Literal(line, value) {}
-    std::string str() const {
+    absl::Status accept(Visitor* v) const override { return v->visit(*this); }
+    std::string str() const override {
         const char* s = value() ? "true" : "false";
         return absl::StrFormat("BoolLiteral(line=%d, value=%s)", line(), s);
     }

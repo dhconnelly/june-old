@@ -65,10 +65,19 @@ void repl() {
             report(stmts.status());
             continue;
         }
-        for (const auto& stmt : stmts.value())
+        for (const auto& stmt : stmts.value()) {
             absl::PrintF("%s\n", stmt->str());
+        }
 
         auto code = compiler.compile(stmts.value());
+        if (!code.ok()) {
+            report(code.status());
+            continue;
+        }
+        for (const char ch : code.value()) {
+            absl::PrintF("0x%02x\n", ch);
+        }
+
         if (auto status = vm.execute(code.value()); !status.ok()) {
             die(status.message());
         }
