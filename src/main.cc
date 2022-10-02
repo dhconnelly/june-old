@@ -66,6 +66,6 @@ void repl() {
 int main(int argc, char* argv[]) {
     auto args = absl::ParseCommandLine(argc, argv);
     if (args.size() == 1) repl();
-    else if (args.size() == 2) run(argv[1]);
+    else if (args.size() == 2) run(args[1]);
     else die(absl::InvalidArgumentError("usage: june <file>"));
 }
