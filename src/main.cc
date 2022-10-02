@@ -29,16 +29,19 @@ absl::StatusOr<std::string> read_file(std::string_view path) {
     std::stringstream buf;
     buf << is.rdbuf();
     std::string text = buf.str();
-    absl::PrintF("read %d bytes\n", text.size());
     return text;
 }
 
 void run(std::string_view path) {
     auto text = read_file(path);
+    if (!text.ok()) die(text.status().message());
     auto toks = scan(text.value());
+    if (!toks.ok()) die(toks.status().message());
     auto stmts = parse(toks.value());
+    if (!stmts.ok()) die(stmts.status().message());
     Compiler compiler;
     auto code = compiler.compile(stmts.value());
+    if (!code.ok()) die(code.status().message());
     VM vm;
     if (auto status = vm.execute(code.value()); !status.ok()) {
         die(status.message());
