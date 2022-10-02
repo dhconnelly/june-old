@@ -5,6 +5,7 @@
 
 enum class TokenType {
     Bool,
+    Int,
     Lparen,
     Rparen,
     Symbol,

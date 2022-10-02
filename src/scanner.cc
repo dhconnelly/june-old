@@ -54,6 +54,18 @@ absl::StatusOr<Token> Scanner::symbol() {
     return token(TokenType::Symbol);
 }
 
+absl::StatusOr<Token> Scanner::number() {
+    while (true) {
+        auto ch = peek();
+        if (is_terminating(ch)) break;
+        if (!is_numeric(ch.value())) {
+            return invalid(absl::StrFormat("invalid symbol: %c", ch.value()));
+        }
+        advance();
+    }
+    return token(TokenType::Int);
+}
+
 absl::StatusOr<std::optional<Token>> Scanner::next() {
     start_ = pos_;
     while (!at_end()) {
@@ -79,6 +91,10 @@ absl::StatusOr<std::optional<Token>> Scanner::next() {
             }
 
             default: {
+                if (is_numeric(ch) || (ch == '-' && peek().has_value() &&
+                                       is_numeric(peek().value()))) {
+                    return number();
+                }
                 if (is_symbol(ch)) return symbol();
                 return invalid(absl::StrFormat("invalid token: %c", ch));
             }

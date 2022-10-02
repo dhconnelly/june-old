@@ -23,6 +23,7 @@ private:
     std::optional<char> advance();
 
     absl::StatusOr<Token> symbol();
+    absl::StatusOr<Token> number();
 
     int start_ = 0;
     int pos_ = 0;
