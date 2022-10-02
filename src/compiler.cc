@@ -19,6 +19,8 @@ absl::Status Compiler::visit(const IntLiteral& lit) {
     return absl::OkStatus();
 }
 
+absl::Status Compiler::visit(const IfExpr& e) { exit(1); }
+
 absl::StatusOr<std::vector<char>> Compiler::compile(
     const std::vector<std::unique_ptr<Stmt>>& stmts) {
     code_.clear();

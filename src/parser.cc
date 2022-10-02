@@ -20,8 +20,14 @@ absl::Status invalid(TokenType want, const Token& tok) {
 }
 }  // namespace
 
-std::optional<const Token*> Parser::peek() const {
-    return at_end() ? std::nullopt : std::optional{&toks_[pos_]};
+std::optional<const Token*> Parser::peek(int n) const {
+    return pos_ + n >= toks_.size() ? std::nullopt
+                                    : std::optional{&toks_[pos_ + n]};
+}
+
+bool Parser::peek_is(TokenType typ, int n) const {
+    auto tok = peek(n);
+    return tok.has_value() && tok.value()->typ == typ;
 }
 
 std::optional<Token> Parser::advance() {
@@ -60,12 +66,32 @@ absl::StatusOr<std::unique_ptr<IntLiteral>> Parser::int_lit() {
     return std::make_unique<IntLiteral>(tok->line, int_value);
 }
 
+absl::StatusOr<std::unique_ptr<IfExpr>> Parser::if_expr() {
+    auto tok = match(TokenType::Lparen);
+    if (!tok.ok()) return tok.status();
+    if (auto tok = match(TokenType::If); !tok.ok()) return tok.status();
+    // TODO: improve error handling here
+    auto cond = expr();
+    if (!cond.ok()) return cond.status();
+    auto cons = expr();
+    if (!cons.ok()) return cons.status();
+    auto alt = expr();
+    if (!alt.ok()) return alt.status();
+    if (auto tok = match(TokenType::Rparen); !tok.ok()) return tok.status();
+    return std::make_unique<IfExpr>(tok.value().line, std::move(cond.value()),
+                                    std::move(cons.value()),
+                                    std::move(alt.value()));
+}
+
 absl::StatusOr<std::unique_ptr<Expr>> Parser::expr() {
     auto tok = peek();
     if (!tok) return unexpected_eof();
     switch (tok.value()->typ) {
         case TokenType::Bool: return bool_lit();
         case TokenType::Int: return int_lit();
+        case TokenType::Lparen: {
+            if (peek_is(TokenType::If, 1)) return if_expr();
+        }
     }
     return err(tok.value()->line, "invalid expr");
 }

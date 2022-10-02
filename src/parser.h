@@ -19,9 +19,11 @@ public:
     absl::StatusOr<std::unique_ptr<Expr>> expr();
     absl::StatusOr<std::unique_ptr<BoolLiteral>> bool_lit();
     absl::StatusOr<std::unique_ptr<IntLiteral>> int_lit();
+    absl::StatusOr<std::unique_ptr<IfExpr>> if_expr();
 
 private:
-    std::optional<const Token*> peek() const;
+    std::optional<const Token*> peek(int n = 0) const;
+    bool peek_is(TokenType typ, int n = 0) const;
     std::optional<Token> advance();
     absl::StatusOr<Token> match(TokenType typ);
 

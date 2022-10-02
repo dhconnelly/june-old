@@ -9,12 +9,14 @@
 class ExprStmt;
 class BoolLiteral;
 class IntLiteral;
+class IfExpr;
 
 class Visitor {
 public:
     virtual absl::Status visit(const ExprStmt&) = 0;
     virtual absl::Status visit(const BoolLiteral&) = 0;
     virtual absl::Status visit(const IntLiteral&) = 0;
+    virtual absl::Status visit(const IfExpr&) = 0;
 };
 
 class Node {
@@ -81,6 +83,26 @@ public:
         return absl::StrFormat("IntLiteral(line=%d, value=%d)", line(),
                                value());
     }
+};
+
+class IfExpr final : public Expr {
+public:
+    IfExpr(int line, std::unique_ptr<Expr> cond, std::unique_ptr<Expr> cons,
+           std::unique_ptr<Expr> alt)
+        : Expr(line),
+          cond_(std::move(cond)),
+          cons_(std::move(cons)),
+          alt_(std::move(alt)) {}
+    std::string str() const override {
+        return absl::StrFormat("IfExpr(cond=%s, cons=%s, alt=%s)", cond_->str(),
+                               cons_->str(), alt_->str());
+    }
+    absl::Status accept(Visitor* v) const override { return v->visit(*this); }
+
+private:
+    std::unique_ptr<Expr> cond_;
+    std::unique_ptr<Expr> cons_;
+    std::unique_ptr<Expr> alt_;
 };
 
 #endif  // AST_H_
