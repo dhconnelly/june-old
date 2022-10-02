@@ -21,6 +21,7 @@ private:
 
     std::optional<char> peek() const;
     std::optional<char> advance();
+    std::string_view peek_cargo() const;
 
     absl::StatusOr<Token> symbol();
     absl::StatusOr<Token> number();

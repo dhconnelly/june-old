@@ -9,6 +9,7 @@ std::string to_string(TokenType typ) {
         case TokenType::Rparen: return "Rparen";
         case TokenType::Symbol: return "Symbol";
         case TokenType::Int: return "Int";
+        case TokenType::If: return "If";
     }
 }
 

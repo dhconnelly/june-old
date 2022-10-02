@@ -9,6 +9,7 @@ enum class TokenType {
     Lparen,
     Rparen,
     Symbol,
+    If,
 };
 
 std::string to_string(TokenType typ);

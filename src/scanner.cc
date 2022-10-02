@@ -37,9 +37,18 @@ absl::Status Scanner::invalid(std::string_view message) const {
         absl::StrFormat("[line %d] scanner: %s", line_, message));
 }
 
+std::string_view Scanner::peek_cargo() const {
+    return text_.substr(start_, pos_ - start_);
+}
+
 Token Scanner::token(TokenType typ) const {
-    std::string cargo(text_.substr(start_, pos_ - start_));
+    std::string cargo(peek_cargo());
     return Token{.line = line_, .cargo = cargo, .typ = typ};
+}
+
+TokenType lookup_keyword(std::string_view s) {
+    if (s == "if") return TokenType::If;
+    return TokenType::Symbol;
 }
 
 absl::StatusOr<Token> Scanner::symbol() {
@@ -51,7 +60,7 @@ absl::StatusOr<Token> Scanner::symbol() {
         }
         advance();
     }
-    return token(TokenType::Symbol);
+    return token(lookup_keyword(peek_cargo()));
 }
 
 absl::StatusOr<Token> Scanner::number() {
