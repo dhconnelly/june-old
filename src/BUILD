@@ -3,6 +3,7 @@ cc_library(
     srcs = ["instr.cc"],
     hdrs = ["instr.h"],
     deps = [
+        "@com_google_absl//absl/status:statusor",
     ],
 )
 
@@ -11,6 +12,7 @@ cc_library(
     srcs = ["value.cc"],
     hdrs = ["value.h"],
     deps = [
+        "@com_google_absl//absl/status:statusor",
     ],
 )
 
@@ -38,6 +40,8 @@ cc_library(
     srcs = ["vm.cc"],
     hdrs = ["vm.h"],
     deps = [
+        ":instr",
+        ":value",
         "@com_google_absl//absl/status:statusor",
     ],
 )

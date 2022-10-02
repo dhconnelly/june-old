@@ -79,7 +79,8 @@ void repl() {
         }
 
         if (auto status = vm.execute(code.value()); !status.ok()) {
-            die(status.message());
+            report(status);
+            continue;
         }
     }
     std::cout << std::endl;

@@ -1,7 +1,5 @@
 #include "scanner.h"
 
-#include <cassert>
-
 #include "absl/strings/str_format.h"
 
 namespace {

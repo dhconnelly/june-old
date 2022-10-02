@@ -13,6 +13,7 @@ class Compiler : public Visitor {
    public:
     absl::StatusOr<std::vector<char>> compile(
         const std::vector<std::unique_ptr<Stmt>>& stmts);
+    void set_interactive(bool interactive) { interactive_ = interactive; }
 
     // Visitor:
     absl::Status visit(const ExprStmt& es) override;
@@ -20,8 +21,9 @@ class Compiler : public Visitor {
 
    private:
     void push(Opcode op) { serialize_opcode(op, &code_); }
-    void push(bool value) { serialize_value(value, &code_); }
+    void push(bool value) { BoolValue(value).serialize(&code_); }
 
+    bool interactive_ = false;
     std::vector<char> code_;
 };
 
