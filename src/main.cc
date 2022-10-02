@@ -36,9 +36,9 @@ absl::StatusOr<std::string> read_file(std::string_view path) {
 void run(std::string_view path) {
     auto text = read_file(path);
     auto toks = scan(text.value());
-    auto exprs = parse(toks.value());
+    auto stmts = parse(toks.value());
     Compiler compiler;
-    auto code = compiler.compile(exprs.value());
+    auto code = compiler.compile(stmts.value());
     VM vm;
     if (auto status = vm.execute(code.value()); !status.ok()) {
         die(status.message());
@@ -60,15 +60,15 @@ void repl() {
         }
         for (const auto& tok : toks.value()) absl::PrintF("%s\n", tok.str());
 
-        auto exprs = parse(toks.value());
-        if (!exprs.ok()) {
-            report(exprs.status());
+        auto stmts = parse(toks.value());
+        if (!stmts.ok()) {
+            report(stmts.status());
             continue;
         }
-        for (const auto& expr : exprs.value())
-            absl::PrintF("%s\n", expr->str());
+        for (const auto& stmt : stmts.value())
+            absl::PrintF("%s\n", stmt->str());
 
-        auto code = compiler.compile(exprs.value());
+        auto code = compiler.compile(stmts.value());
         if (auto status = vm.execute(code.value()); !status.ok()) {
             die(status.message());
         }

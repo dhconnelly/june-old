@@ -19,10 +19,8 @@ class Scanner {
     absl::Status invalid(std::string_view message) const;
     Token token(TokenType typ) const;
 
-    std::optional<char> advance() {
-        if (at_end()) return {};
-        return text_[pos_++];
-    }
+    std::optional<char> peek() const;
+    std::optional<char> advance();
 
     int start_ = 0;
     int pos_ = 0;

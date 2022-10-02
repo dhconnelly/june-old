@@ -35,7 +35,7 @@ absl::StatusOr<Token> Parser::match(TokenType want) {
     return advance().value();
 }
 
-absl::StatusOr<std::unique_ptr<Expr>> Parser::bool_lit() {
+absl::StatusOr<std::unique_ptr<Literal<bool>>> Parser::bool_lit() {
     auto result = match(TokenType::Bool);
     if (!result.ok()) return result.status();
     auto tok = result.value();
@@ -56,12 +56,18 @@ absl::StatusOr<std::unique_ptr<Expr>> Parser::expr() {
     return err(tok.line, "invalid expr");
 }
 
-absl::StatusOr<std::vector<std::unique_ptr<Expr>>> parse(
+absl::StatusOr<std::unique_ptr<Stmt>> Parser::stmt() {
+    auto result = expr();
+    if (!result.ok()) return result.status();
+    return std::make_unique<ExprStmt>(std::move(result.value()));
+}
+
+absl::StatusOr<std::vector<std::unique_ptr<Stmt>>> parse(
     const std::vector<Token>& toks) {
     Parser parse(toks);
-    std::vector<std::unique_ptr<Expr>> exprs;
+    std::vector<std::unique_ptr<Stmt>> exprs;
     while (!parse.at_end()) {
-        auto result = parse.expr();
+        auto result = parse.stmt();
         if (!result.ok()) return result.status();
         exprs.push_back(std::move(result.value()));
     }

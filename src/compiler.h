@@ -10,7 +10,7 @@
 class Compiler {
    public:
     absl::StatusOr<std::vector<char>> compile(
-        const std::vector<std::unique_ptr<Expr>>& exprs);
+        const std::vector<std::unique_ptr<Stmt>>& exprs);
 };
 
 #endif  // COMPILER_H_

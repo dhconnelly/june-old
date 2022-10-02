@@ -15,8 +15,9 @@ class Parser {
     explicit Parser(const std::vector<Token>& toks) : toks_(toks) {}
     bool at_end() const { return pos_ >= toks_.size(); }
 
+    absl::StatusOr<std::unique_ptr<Stmt>> stmt();
     absl::StatusOr<std::unique_ptr<Expr>> expr();
-    absl::StatusOr<std::unique_ptr<Expr>> bool_lit();
+    absl::StatusOr<std::unique_ptr<Literal<bool>>> bool_lit();
 
    private:
     std::optional<const Token*> peek() const;
@@ -27,7 +28,7 @@ class Parser {
     int pos_ = 0;
 };
 
-absl::StatusOr<std::vector<std::unique_ptr<Expr>>> parse(
+absl::StatusOr<std::vector<std::unique_ptr<Stmt>>> parse(
     const std::vector<Token>& toks);
 
 #endif  // PARSER_H_

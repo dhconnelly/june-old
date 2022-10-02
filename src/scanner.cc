@@ -4,6 +4,24 @@
 
 #include "absl/strings/str_format.h"
 
+namespace {
+bool is_whitespace(char ch) { return ch == '\n' || ch == '\t' || ch == ' '; }
+
+bool is_terminating(std::optional<char> ch) {
+    return !ch.has_value() || is_whitespace(ch.value()) || ch.value() == ')';
+}
+}  // namespace
+
+std::optional<char> Scanner::advance() {
+    if (at_end()) return {};
+    return text_[pos_++];
+}
+
+std::optional<char> Scanner::peek() const {
+    if (at_end()) return {};
+    return text_[pos_];
+}
+
 absl::Status Scanner::invalid(std::string_view message) const {
     return absl::InvalidArgumentError(
         absl::StrFormat("[line %d] scanner: %s", line_, message));
@@ -33,11 +51,13 @@ absl::StatusOr<std::optional<Token>> Scanner::next() {
                 auto result = advance();
                 if (!result) return invalid("unexpected eof");
                 char ch = result.value();
-                if (ch != 't' && ch != 'f') return invalid("bad bool literal");
+                if ((ch != 't' && ch != 'f') || !is_terminating(peek())) {
+                    return invalid("bad bool literal");
+                }
                 return token(TokenType::Bool);
             }
 
-            default: return invalid("unknown token");
+            default: return invalid(absl::StrFormat("invalid token: %c", ch));
         }
     }
     return std::nullopt;

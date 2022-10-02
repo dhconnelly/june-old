@@ -5,11 +5,27 @@
 
 #include "absl/strings/str_format.h"
 
-class Expr {
+class Node {
    public:
-    virtual ~Expr() {}
+    virtual ~Node() {}
     virtual int line() const = 0;
     virtual std::string str() const = 0;
+};
+
+class Stmt : public Node {};
+
+class Expr : public Node {};
+
+class ExprStmt : public Stmt {
+   public:
+    explicit ExprStmt(std::unique_ptr<Expr> expr) : expr_(std::move(expr)) {}
+    std::string str() const override {
+        return absl::StrFormat("ExprStmt(%s)", expr_->str());
+    }
+    int line() const override { return expr_->line(); }
+
+   private:
+    std::unique_ptr<Expr> expr_;
 };
 
 std::string print_literal(bool value);
