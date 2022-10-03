@@ -9,11 +9,11 @@ a compiler and vm for a small lisp implemented in c++
             1
             (+ (fib (- n 1)) (fib (- n 2)))))
 
-a longer example found at `fib.lisp`
+a longer example demonstrating all language features found at `fib.lisp`
 
 ## prerequisites
 
-you need bazel: https://bazel.build/install or `brew install bazel` on mac
+bazel: https://bazel.build/install or `brew install bazel` on mac
 
 ## building
 
@@ -21,9 +21,32 @@ you need bazel: https://bazel.build/install or `brew install bazel` on mac
 
 ## usage
 
-    ./bazel-bin/src/june <file>
+supports both interactive and batch execution:
+
+    ./bazel-bin/src/june [file]
+
+## status
+
+under active development
 
 ## TODO
+
+features:
+
+- [x] booleans
+- [x] integers
+- [x] if
+- [ ] let
+- [ ] define
+- [ ] improve stack
+- [ ] heap storage and refs
+- [ ] lambda and function calls
+- [ ] arithmetic and logical built-ins
+- [ ] garbage collection
+- [ ] lists and cons car cdr nil nil?
+- [ ] performance tuning
+
+tech debt:
 
 - error handling: use more diverse error types
 - error handling: improve error propagation

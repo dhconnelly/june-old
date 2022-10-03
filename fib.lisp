@@ -1,8 +1,8 @@
 ; assumes the following special forms:
-; define, if, let, lambda
+; define if let lambda
 
 ; assumes the following built-ins:
-; nil nil? or < > + - cons car cdr display
+; display or < > + - cons car cdr nil nil?
 
 (define (fib n)
     (if (< n 2)
