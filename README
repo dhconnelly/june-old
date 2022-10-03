@@ -2,6 +2,15 @@
 
 a compiler and vm for a small lisp implemented in c++
 
+## example
+
+    (define (fib n)
+        (if (< n 2)
+            1
+            (+ (fib (- n 1)) (fib (- n 2)))))
+
+a longer example found at `fib.lisp`
+
 ## prerequisites
 
 you need bazel: https://bazel.build/install or `brew install bazel` on mac
@@ -20,3 +29,6 @@ you need bazel: https://bazel.build/install or `brew install bazel` on mac
 - error handling: improve error propagation
 - error handling: better error messages when parsing exprs
 - vm: keep values directly in the stack instead of unique_ptrs
+- compiler/vm: standardize instruction argument passing
+- compiler/vm: create instruction abstraction
+- add tests
