@@ -11,6 +11,13 @@ enum class Type {
     Int = 2,
 };
 
+constexpr const char* to_string(Type typ) {
+    switch (typ) {
+        case Type::Bool: return "Bool";
+        case Type::Int: return "Int";
+    }
+}
+
 class Value {
 public:
     virtual ~Value() {}
@@ -18,6 +25,7 @@ public:
     virtual Type typ() const = 0;
     int size() const { return 1 + value_size(); }
     virtual std::string str() const = 0;
+    virtual int value_size() const = 0;
 
     void serialize(std::vector<char>* buf) const {
         buf->push_back(static_cast<char>(typ()));
@@ -26,9 +34,6 @@ public:
 
     static absl::StatusOr<std::unique_ptr<Value>> deserialize(
         const std::vector<char>& buf, int at);
-
-protected:
-    virtual int value_size() const = 0;
 };
 
 class BoolValue final : public Value {
@@ -38,6 +43,9 @@ public:
     int value_size() const override { return 1; }
     Type typ() const override { return Type::Bool; }
     std::string str() const override { return value_ ? "true" : "false"; }
+    bool value() const { return value_; }
+
+    static constexpr Type static_typ = Type::Bool;
 
     static absl::StatusOr<std::unique_ptr<BoolValue>> deserialize(
         const std::vector<char>& buf, int at);
@@ -50,9 +58,13 @@ class IntValue final : public Value {
 public:
     IntValue(int value) : value_(value) {}
     void serialize_value(std::vector<char>* buf) const override;
+    void serialize_value(std::vector<char>* buf, int at) const;
     int value_size() const override { return 4; }
     Type typ() const override { return Type::Int; }
     std::string str() const override { return std::to_string(value_); }
+    int value() const { return value_; }
+
+    static constexpr Type static_typ = Type::Int;
 
     static absl::StatusOr<std::unique_ptr<IntValue>> deserialize(
         const std::vector<char>& buf, int at);

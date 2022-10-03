@@ -99,6 +99,10 @@ public:
     }
     absl::Status accept(Visitor* v) const override { return v->visit(*this); }
 
+    Expr& cond() const { return *cond_; }
+    Expr& cons() const { return *cons_; }
+    Expr& alt() const { return *alt_; }
+
 private:
     std::unique_ptr<Expr> cond_;
     std::unique_ptr<Expr> cons_;

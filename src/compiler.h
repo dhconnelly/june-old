@@ -26,8 +26,7 @@ public:
 
 private:
     void push(Opcode op) { serialize_opcode(op, &code_); }
-    void push(bool value) { BoolValue(value).serialize(&code_); }
-    void push(int value) { IntValue(value).serialize(&code_); }
+    void push(const Value& value) { value.serialize(&code_); }
 
     bool interactive_ = false;
     std::vector<char> code_;

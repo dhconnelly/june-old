@@ -13,3 +13,10 @@ you need bazel: https://bazel.build/install or `brew install bazel` on mac
 ## usage
 
     ./bazel-bin/src/june <file>
+
+## TODO
+
+- error handling: use more diverse error types
+- error handling: improve error propagation
+- error handling: better error messages when parsing exprs
+- vm: keep values directly in the stack instead of unique_ptrs

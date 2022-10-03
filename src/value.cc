@@ -7,14 +7,17 @@ void BoolValue::serialize_value(std::vector<char>* buf) const {
 }
 
 void IntValue::serialize_value(std::vector<char>* buf) const {
+    auto end = buf->size();
+    buf->resize(end + 4);
+    serialize_value(buf, end);
+}
+
+void IntValue::serialize_value(std::vector<char>* buf, int at) const {
     unsigned int x = value_;
-    buf->push_back(static_cast<char>(x & 0xFF));
-    buf->push_back(static_cast<char>((x >> 8) & 0xFF));
-    buf->push_back(static_cast<char>((x >> 16) & 0xFF));
-    buf->push_back(static_cast<char>((x >> 24) & 0xFF));
-    int pos = buf->size();
-    absl::PrintF("%x %x %x %x\n", (*buf)[pos - 4], (*buf)[pos - 3],
-                 (*buf)[pos - 2], (*buf)[pos - 1]);
+    (*buf)[at] = static_cast<char>(x & 0xFF);
+    (*buf)[at + 1] = static_cast<char>((x >> 8) & 0xFF);
+    (*buf)[at + 2] = static_cast<char>((x >> 16) & 0xFF);
+    (*buf)[at + 3] = static_cast<char>((x >> 24) & 0xFF);
 }
 
 absl::StatusOr<std::unique_ptr<BoolValue>> BoolValue::deserialize(

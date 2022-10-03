@@ -53,7 +53,11 @@ void run(std::string_view path) {
 
 void repl() {
     auto eval = build_evaluator(
-        [](auto err) { absl::PrintF("%s\n", err.message()); }, true);
+        [](absl::Status status) {
+            if (absl::IsFailedPrecondition(status)) die(status);
+            else absl::FPrintF(stderr, "%s\n", status.message());
+        },
+        true);
     std::string line;
     while (true) {
         std::cout << "> ";

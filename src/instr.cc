@@ -11,6 +11,8 @@ absl::StatusOr<Opcode> deserialize_opcode(char op) {
         case 1: return Opcode::Push;
         case 2: return Opcode::Pop;
         case 3: return Opcode::Print;
+        case 4: return Opcode::JmpIfNot;
+        case 5: return Opcode::Jmp;
     }
     return absl::InvalidArgumentError(absl::StrFormat("bad opcode: %d", op));
 }

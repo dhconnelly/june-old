@@ -92,8 +92,8 @@ absl::StatusOr<std::unique_ptr<Expr>> Parser::expr() {
         case TokenType::Lparen: {
             if (peek_is(TokenType::If, 1)) return if_expr();
         }
+        default: return err(tok.value()->line, "invalid expr");
     }
-    return err(tok.value()->line, "invalid expr");
 }
 
 absl::StatusOr<std::unique_ptr<Stmt>> Parser::stmt() {

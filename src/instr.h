@@ -13,6 +13,10 @@ enum class Opcode {
     Pop = 2,
     // [Print]
     Print = 3,
+    // [JmpIfNot Pc]
+    JmpIfNot = 4,
+    // [Jmp Pc]
+    Jmp = 5,
 };
 
 void serialize_opcode(Opcode op, std::vector<char>* buf);
