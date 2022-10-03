@@ -37,8 +37,9 @@ features:
 - [x] integers
 - [x] if
 - [ ] let
-- [ ] define
+- [ ] refactor to std::variant
 - [ ] improve stack
+- [ ] define
 - [ ] heap storage and refs
 - [ ] lambda and function calls
 - [ ] arithmetic and logical built-ins
@@ -52,6 +53,10 @@ tech debt:
 - error handling: improve error propagation
 - error handling: better error messages when parsing exprs
 - vm: keep values directly in the stack instead of unique_ptrs
+- vm: move interactive mode setting to vm
 - compiler/vm: standardize instruction argument passing
 - compiler/vm: create instruction abstraction
 - add tests
+- use std::span instead of std::vector parameters
+- use more stl algorithms
+- use C++20 concepts?
