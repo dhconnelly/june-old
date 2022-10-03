@@ -30,7 +30,8 @@
             (cons '(x y) (zip (xs ys))))))
 
 (define fibs
-    (let ((double (lambda (x) (* 2 x)))
+    (let ((k 2)
+          (double (lambda (x) (* k x)))
           (nums (map double (range -1 10))))
         (zip nums (map fib nums))))
 
