@@ -45,6 +45,9 @@ features:
 - [ ] garbage collection
 - [ ] support compile-only and execute-only modes
 - [ ] add disassembler
+- [ ] strings and string manipulation
+- [ ] write i/o example (sorted word counts)
+- [ ] add i/o support
 
 tech debt:
 
@@ -63,3 +66,8 @@ tech debt:
 - use C++20 concepts?
 - add tests
 - improve stack: https://www.craftinginterpreters.com/optimization.html
+
+extensions:
+
+- compile to wasm and wrap in a ts library
+- add wasm generation backend
