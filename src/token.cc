@@ -10,6 +10,7 @@ std::string to_string(TokenType typ) {
         case TokenType::Symbol: return "Symbol";
         case TokenType::Int: return "Int";
         case TokenType::If: return "If";
+        case TokenType::Let: return "Let";
     }
 }
 

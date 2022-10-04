@@ -83,6 +83,34 @@ absl::StatusOr<std::unique_ptr<IfExpr>> Parser::if_expr() {
                                     std::move(alt.value()));
 }
 
+absl::StatusOr<std::unique_ptr<LetExpr>> Parser::let_expr() {
+    auto tok = match(TokenType::Lparen);
+    if (!tok.ok()) return tok.status();
+    if (auto tok = match(TokenType::Let); !tok.ok()) return tok.status();
+
+    // bindings
+    std::vector<Binding> bindings;
+    if (auto tok = match(TokenType::Lparen); !tok.ok()) return tok.status();
+    while (!peek_is(TokenType::Rparen)) {
+        if (auto tok = match(TokenType::Lparen); !tok.ok()) return tok.status();
+        auto name = match(TokenType::Symbol);
+        if (!name.ok()) return name.status();
+        auto binding = expr();
+        if (!binding.ok()) return binding.status();
+        bindings.emplace_back(name.value().cargo, std::move(binding.value()));
+        if (auto tok = match(TokenType::Rparen); !tok.ok()) return tok.status();
+    }
+    if (auto tok = match(TokenType::Rparen); !tok.ok()) return tok.status();
+
+    // value
+    auto subexpr = expr();
+    if (!subexpr.ok()) return subexpr.status();
+
+    if (auto tok = match(TokenType::Rparen); !tok.ok()) return tok.status();
+    return std::make_unique<LetExpr>(tok.value().line, std::move(bindings),
+                                     std::move(subexpr.value()));
+}
+
 absl::StatusOr<std::unique_ptr<Expr>> Parser::expr() {
     auto tok = peek();
     if (!tok) return unexpected_eof();
@@ -91,6 +119,7 @@ absl::StatusOr<std::unique_ptr<Expr>> Parser::expr() {
         case TokenType::Int: return int_lit();
         case TokenType::Lparen: {
             if (peek_is(TokenType::If, 1)) return if_expr();
+            if (peek_is(TokenType::Let, 1)) return let_expr();
         }
         default: return err(tok.value()->line, "invalid expr");
     }

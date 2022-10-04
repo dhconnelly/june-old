@@ -23,6 +23,7 @@ public:
     absl::Status visit(const BoolLiteral& lit) override;
     absl::Status visit(const IntLiteral& lit) override;
     absl::Status visit(const IfExpr& e) override;
+    absl::Status visit(const LetExpr& e) override;
 
 private:
     void push(Opcode op) { serialize_opcode(op, &code_); }

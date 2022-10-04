@@ -48,6 +48,7 @@ Token Scanner::token(TokenType typ) const {
 
 TokenType lookup_keyword(std::string_view s) {
     if (s == "if") return TokenType::If;
+    if (s == "let") return TokenType::Let;
     return TokenType::Symbol;
 }
 

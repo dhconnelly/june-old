@@ -49,6 +49,7 @@ features:
 
 tech debt:
 
+- clean up public interfaces
 - error handling: use more diverse error types
 - error handling: improve error propagation
 - error handling: better error messages when parsing exprs
