@@ -36,28 +36,28 @@ features:
 - [x] booleans
 - [x] integers
 - [x] if
-- [ ] let
-- [ ] refactor to std::variant
-- [ ] improve stack
+- [x] let
 - [ ] define
-- [ ] heap storage and refs
+- [ ] assert
+- [ ] lists and cons car cdr nil nil?
 - [ ] lambda and function calls
 - [ ] arithmetic and logical built-ins
 - [ ] garbage collection
-- [ ] lists and cons car cdr nil nil?
-- [ ] performance tuning
 
 tech debt:
 
+- refactor to std::variant
+- improve stack
 - clean up public interfaces
+- error handling: move error factories out of classes
 - error handling: use more diverse error types
-- error handling: improve error propagation
+- error handling: improve error propagation and use some exceptions
 - error handling: better error messages when parsing exprs
 - vm: keep values directly in the stack instead of unique_ptrs
 - vm: move interactive mode setting to vm
 - compiler/vm: standardize instruction argument passing
 - compiler/vm: create instruction abstraction
-- add tests
 - use std::span instead of std::vector parameters
 - use more stl algorithms
 - use C++20 concepts?
+- add tests
