@@ -20,6 +20,10 @@ std::string IfExpr::str() const {
                            cons_->str(), alt_->str());
 }
 
+std::string SymbolExpr::str() const {
+    return absl::StrFormat("SymbolExpr(line=%d, value=%s)", line(), value());
+}
+
 std::string LetExpr::str() const {
     std::vector<std::string> bindings;
     for (const auto& [name, val] : bindings_) {

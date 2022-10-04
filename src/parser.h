@@ -21,6 +21,7 @@ public:
     absl::StatusOr<std::unique_ptr<IntLiteral>> int_lit();
     absl::StatusOr<std::unique_ptr<IfExpr>> if_expr();
     absl::StatusOr<std::unique_ptr<LetExpr>> let_expr();
+    absl::StatusOr<std::unique_ptr<SymbolExpr>> symbol_expr();
 
 private:
     std::optional<const Token*> peek(int n = 0) const;

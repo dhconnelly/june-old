@@ -19,6 +19,10 @@ absl::Status Compiler::visit(const IntLiteral& lit) {
     return absl::OkStatus();
 }
 
+absl::Status Compiler::visit(const SymbolExpr& sym) {
+    return absl::UnimplementedError("unimplemented");
+}
+
 absl::Status Compiler::visit(const IfExpr& e) {
     // evaluate the condition and jump to the alternate if false
     if (auto status = e.cond().accept(this); !status.ok()) return status;

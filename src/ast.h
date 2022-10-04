@@ -12,6 +12,7 @@ class BoolLiteral;
 class IntLiteral;
 class IfExpr;
 class LetExpr;
+class SymbolExpr;
 
 class Visitor {
 public:
@@ -20,6 +21,7 @@ public:
     virtual absl::Status visit(const IntLiteral&) = 0;
     virtual absl::Status visit(const IfExpr&) = 0;
     virtual absl::Status visit(const LetExpr&) = 0;
+    virtual absl::Status visit(const SymbolExpr&) = 0;
 };
 
 class Node {
@@ -56,28 +58,37 @@ private:
     std::unique_ptr<Expr> expr_;
 };
 
-template <typename T>
-class Literal : public Expr {
+class BoolLiteral final : public Expr {
 public:
-    Literal(int line, T value) : Expr(line), value_(value) {}
-    const T value() const { return value_; }
+    BoolLiteral(int line, bool value) : Expr(line), value_(value) {}
+    absl::Status accept(Visitor* v) const override { return v->visit(*this); }
+    std::string str() const override;
+    bool value() const { return value_; }
 
 private:
-    T value_;
+    bool value_;
 };
 
-class BoolLiteral final : public Literal<bool> {
+class IntLiteral final : public Expr {
 public:
-    BoolLiteral(int line, bool value) : Literal(line, value) {}
+    IntLiteral(int line, int value) : Expr(line), value_(value) {}
     absl::Status accept(Visitor* v) const override { return v->visit(*this); }
     std::string str() const override;
+    int value() const { return value_; }
+
+private:
+    int value_;
 };
 
-class IntLiteral final : public Literal<int> {
+class SymbolExpr final : public Expr {
 public:
-    IntLiteral(int line, int value) : Literal(line, value) {}
+    SymbolExpr(int line, std::string value) : Expr(line), value_(value) {}
     absl::Status accept(Visitor* v) const override { return v->visit(*this); }
     std::string str() const override;
+    const std::string& value() const { return value_; }
+
+private:
+    std::string value_;
 };
 
 class IfExpr final : public Expr {

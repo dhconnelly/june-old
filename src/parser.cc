@@ -66,6 +66,12 @@ absl::StatusOr<std::unique_ptr<IntLiteral>> Parser::int_lit() {
     return std::make_unique<IntLiteral>(tok->line, int_value);
 }
 
+absl::StatusOr<std::unique_ptr<SymbolExpr>> Parser::symbol_expr() {
+    auto tok = match(TokenType::Symbol);
+    if (!tok.ok()) return tok.status();
+    return std::make_unique<SymbolExpr>(tok->line, tok->cargo);
+}
+
 absl::StatusOr<std::unique_ptr<IfExpr>> Parser::if_expr() {
     auto tok = match(TokenType::Lparen);
     if (!tok.ok()) return tok.status();
@@ -117,6 +123,7 @@ absl::StatusOr<std::unique_ptr<Expr>> Parser::expr() {
     switch (tok.value()->typ) {
         case TokenType::Bool: return bool_lit();
         case TokenType::Int: return int_lit();
+        case TokenType::Symbol: return symbol_expr();
         case TokenType::Lparen: {
             if (peek_is(TokenType::If, 1)) return if_expr();
             if (peek_is(TokenType::Let, 1)) return let_expr();
