@@ -1,6 +1,7 @@
 #ifndef VM_H_
 #define VM_H_
 
+#include <optional>
 #include <type_traits>
 
 #include "absl/status/status.h"
@@ -42,6 +43,12 @@ private:
     void push_stack(std::unique_ptr<Value> value) {
         stack_.push_back(std::move(value));
     }
+    size_t stack_size() const { return stack_.size(); }
+    std::optional<std::unique_ptr<Value>> stack_get(int n) {
+        if (n < 0 || n >= stack_.size()) return {};
+        int k = stack_.size() - n - 1;
+        return stack_[k]->clone();
+    }
 
     // read the next static value from code
     template <typename T>
@@ -65,6 +72,7 @@ private:
     absl::Status jmp();
     absl::Status jmp_if_not();
     absl::Status swap();
+    absl::Status get();
 
     bool log_ = false;
     int instr_pc_ = 0;

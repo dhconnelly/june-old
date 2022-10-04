@@ -20,7 +20,27 @@ absl::Status Compiler::visit(const IntLiteral& lit) {
 }
 
 absl::Status Compiler::visit(const SymbolExpr& sym) {
-    return absl::UnimplementedError("unimplemented");
+    // find stack distance to binding
+    const auto& name = sym.value();
+    int dist = 0;
+    bool found = false;
+    for (auto it = scopes_.rbegin(); it != scopes_.rend(); ++it) {
+        const auto& scope = *it;
+        if (auto binding_it = scope.find(name); binding_it != scope.end()) {
+            int offset_in_scope = scope.size() - binding_it->second - 1;
+            dist += offset_in_scope;
+            found = true;
+            break;
+        }
+        dist += scope.size();
+    }
+    if (!found) {
+        return absl::InvalidArgumentError(absl::StrFormat(
+            "[line %d] compiler: %s is not defined", sym.line(), name));
+    }
+    push(Opcode::Get);
+    IntValue(dist).serialize_value(&code_);
+    return absl::OkStatus();
 }
 
 absl::Status Compiler::visit(const IfExpr& e) {
@@ -51,7 +71,6 @@ absl::Status Compiler::visit(const IfExpr& e) {
 }
 
 absl::Status Compiler::visit(const LetExpr& e) {
-    // TODO: rewrite as lambda + function call once they're implemented
     push_scope();
     for (const auto& [name, expr] : e.bindings()) {
         int pos = top_scope().size();

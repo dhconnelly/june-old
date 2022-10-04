@@ -83,7 +83,20 @@ absl::Status VM::swap() {
     return absl::OkStatus();
 }
 
+absl::Status VM::get() {
+    log("GET");
+    auto n = read_static<IntValue>();
+    if (!n.ok()) return n.status();
+    auto val = stack_get(n.value()->value());
+    if (!val.has_value()) {
+        return absl::FailedPreconditionError("stack offset out of bounds");
+    }
+    push_stack(std::move(val.value()));
+    return absl::OkStatus();
+}
+
 absl::Status VM::step() {
+    log(absl::StrFormat("< stack: %d >", stack_size()));
     instr_pc_ = pc_;
     auto op = deserialize_opcode((*code_)[pc_++]);
     if (!op.ok()) return invalid(op.status().message());
@@ -94,6 +107,7 @@ absl::Status VM::step() {
         case Opcode::Jmp: return jmp();
         case Opcode::JmpIfNot: return jmp_if_not();
         case Opcode::Swap: return swap();
+        case Opcode::Get: return get();
     }
     return invalid(absl::StrFormat("unsupported opcode: %d", op.value()));
 }

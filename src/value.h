@@ -26,6 +26,7 @@ public:
     int size() const { return 1 + value_size(); }
     virtual std::string str() const = 0;
     virtual int value_size() const = 0;
+    virtual std::unique_ptr<Value> clone() const = 0;
 
     void serialize(std::vector<char>* buf) const {
         buf->push_back(static_cast<char>(typ()));
@@ -44,6 +45,9 @@ public:
     Type typ() const override { return Type::Bool; }
     std::string str() const override { return value_ ? "true" : "false"; }
     bool value() const { return value_; }
+    std::unique_ptr<Value> clone() const override {
+        return std::make_unique<BoolValue>(value_);
+    }
 
     static constexpr Type static_typ = Type::Bool;
 
@@ -63,6 +67,9 @@ public:
     Type typ() const override { return Type::Int; }
     std::string str() const override { return std::to_string(value_); }
     int value() const { return value_; }
+    std::unique_ptr<Value> clone() const override {
+        return std::make_unique<IntValue>(value_);
+    }
 
     static constexpr Type static_typ = Type::Int;
 

@@ -19,6 +19,8 @@ enum class Opcode {
     Jmp = 5,
     // [Swap]
     Swap = 6,
+    // [Get]
+    Get = 7,
 };
 
 void serialize_opcode(Opcode op, std::vector<char>* buf);

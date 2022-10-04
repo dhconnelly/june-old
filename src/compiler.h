@@ -38,6 +38,7 @@ private:
         if (scopes_.empty()) {
             throw new std::logic_error("compiling at global scope, cannot pop");
         }
+        scopes_.pop_back();
     }
     Scope& top_scope() { return scopes_.back(); }
 
