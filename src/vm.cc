@@ -26,42 +26,60 @@ absl::Status VM::precondition_failed(std::string_view message) const {
 }
 
 absl::Status VM::push() {
+    log("PUSH");
     auto value = read_typed_static<Value>();
     if (!value.ok()) return value.status();
-    log("PUSH " + value.value()->str());
+    log(absl::StrFormat(": [%s]", value.value()->str()));
     stack_.push_back(std::move(value.value()));
     return absl::OkStatus();
 }
 
 absl::Status VM::pop() {
+    log("POP");
     auto val = pop_stack<Value>();
-    if (val.ok()) log("POP");
+    log(absl::StrFormat("-> [%s]", val.value()->str()));
     return val.status();
 }
 
 absl::Status VM::print() {
-    if (stack_.empty()) return invalid("can't print empty stack");
     log("PRINT");
+    if (stack_.empty()) return invalid("can't print empty stack");
     absl::PrintF("%s\n", stack_.back()->str());
     return absl::OkStatus();
 }
 
 absl::Status VM::jmp() {
+    log("JMP");
     auto dest = read_static<IntValue>();
     if (!dest.ok()) return dest.status();
-    log("JMP " + dest.value()->str());
+    log(absl::StrFormat(": [%s]", dest.value()->str()));
     pc_ = dest.value()->value();
     return absl::OkStatus();
 }
 
 absl::Status VM::jmp_if_not() {
-    auto cond = pop_stack<BoolValue>();
-    if (!cond.ok()) return cond.status();
+    log("JMP_IF_NOT");
     auto dest = read_static<IntValue>();
     if (!dest.ok()) return dest.status();
-    log("JMP_IF_NOT " + dest.value()->str());
+    log(absl::StrFormat(": [%s]", dest.value()->str()));
+    auto cond = pop_stack<BoolValue>();
+    if (!cond.ok()) return cond.status();
+    log(absl::StrFormat("-> [%s]", cond.value()->str()));
     if (cond.value()->value()) return absl::OkStatus();
     pc_ = dest.value()->value();
+    return absl::OkStatus();
+}
+
+absl::Status VM::swap() {
+    log("SWAP");
+    auto val1 = pop_stack<Value>();
+    if (!val1.ok()) return val1.status();
+    log(absl::StrFormat("-> [%s]", val1.value()->str()));
+    auto val2 = pop_stack<Value>();
+    if (!val2.ok()) return val2.status();
+    log(absl::StrFormat("-> [%s]", val2.value()->str()));
+    push_stack(std::move(val1.value()));
+    push_stack(std::move(val2.value()));
     return absl::OkStatus();
 }
 
@@ -75,6 +93,7 @@ absl::Status VM::step() {
         case Opcode::Print: return print();
         case Opcode::Jmp: return jmp();
         case Opcode::JmpIfNot: return jmp_if_not();
+        case Opcode::Swap: return swap();
     }
     return invalid(absl::StrFormat("unsupported opcode: %d", op.value()));
 }

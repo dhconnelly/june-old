@@ -124,6 +124,9 @@ public:
     std::string str() const override;
     absl::Status accept(Visitor* v) const override { return v->visit(*this); }
 
+    const std::vector<Binding>& bindings() const { return bindings_; }
+    const Expr& subexpr() const { return *subexpr_; }
+
 private:
     std::vector<Binding> bindings_;
     std::unique_ptr<Expr> subexpr_;

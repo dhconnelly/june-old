@@ -39,6 +39,9 @@ private:
         if constexpr (std::is_base_of<T, Value>()) return value;
         else return downcast<T>(std::move(value));
     }
+    void push_stack(std::unique_ptr<Value> value) {
+        stack_.push_back(std::move(value));
+    }
 
     // read the next static value from code
     template <typename T>
@@ -61,6 +64,7 @@ private:
     absl::Status print();
     absl::Status jmp();
     absl::Status jmp_if_not();
+    absl::Status swap();
 
     bool log_ = false;
     int instr_pc_ = 0;

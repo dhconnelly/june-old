@@ -51,7 +51,20 @@ absl::Status Compiler::visit(const IfExpr& e) {
 }
 
 absl::Status Compiler::visit(const LetExpr& e) {
-    return absl::UnimplementedError("unimplemented");
+    // TODO: rewrite as lambda + function call once they're implemented
+    push_scope();
+    for (const auto& [name, expr] : e.bindings()) {
+        int pos = top_scope().size();
+        if (auto status = expr->accept(this); !status.ok()) return status;
+        top_scope().emplace(name, pos);
+    }
+    if (auto status = e.subexpr().accept(this); !status.ok()) return status;
+    for (int i = 0; i < e.bindings().size(); i++) {
+        push(Opcode::Swap);
+        push(Opcode::Pop);
+    }
+    pop_scope();
+    return absl::OkStatus();
 }
 
 absl::StatusOr<std::vector<char>> Compiler::compile(
