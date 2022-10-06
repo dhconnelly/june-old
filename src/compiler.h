@@ -11,22 +11,22 @@
 #include "instr.h"
 #include "value.h"
 
-class Compiler final : public Visitor {
+class Compiler final {
 public:
-    absl::StatusOr<std::vector<char>> compile(
-        const std::vector<std::unique_ptr<Stmt>>& stmts);
+    absl::StatusOr<std::vector<char>> compile(const std::vector<Stmt>& stmts);
 
     // interactive mode prints the value that is on top of the stack after
     // each statement
     void set_interactive(bool interactive) { interactive_ = interactive; }
 
     // Visitor:
-    absl::Status visit(const ExprStmt& es) override;
-    absl::Status visit(const BoolLiteral& lit) override;
-    absl::Status visit(const IntLiteral& lit) override;
-    absl::Status visit(const IfExpr& e) override;
-    absl::Status visit(const LetExpr& e) override;
-    absl::Status visit(const SymbolExpr& e) override;
+    absl::Status operator()(const Expr& s);
+    absl::Status operator()(const Stmt& s);
+    absl::Status operator()(const BoolExpr& lit);
+    absl::Status operator()(const IntExpr& lit);
+    absl::Status operator()(const IfExpr& e);
+    absl::Status operator()(const LetExpr& e);
+    absl::Status operator()(const SymbolExpr& e);
 
 private:
     using Scope = std::map<std::string, int>;

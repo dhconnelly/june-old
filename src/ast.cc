@@ -1,35 +1,44 @@
 #include "ast.h"
 
+#include <algorithm>
+
 #include "absl/strings/str_join.h"
 
-std::string ExprStmt::str() const {
-    return absl::StrFormat("ExprStmt(%s)", expr_->str());
-}
+struct Printer {
+    std::string operator()(const Expr& e) const { return to_string(e); }
 
-std::string BoolLiteral::str() const {
-    const char* s = value() ? "true" : "false";
-    return absl::StrFormat("BoolLiteral(line=%d, value=%s)", line(), s);
-}
-
-std::string IntLiteral::str() const {
-    return absl::StrFormat("IntLiteral(line=%d, value=%d)", line(), value());
-}
-
-std::string IfExpr::str() const {
-    return absl::StrFormat("IfExpr(cond=%s, cons=%s, alt=%s)", cond_->str(),
-                           cons_->str(), alt_->str());
-}
-
-std::string SymbolExpr::str() const {
-    return absl::StrFormat("SymbolExpr(line=%d, value=%s)", line(), value());
-}
-
-std::string LetExpr::str() const {
-    std::vector<std::string> bindings;
-    for (const auto& [name, val] : bindings_) {
-        bindings.push_back(absl::StrFormat("[\"%s\" -> %s]", name, val->str()));
+    std::string operator()(const IntExpr& e) const {
+        return std::to_string(e.value);
     }
-    auto bs = absl::StrFormat("[%s]", absl::StrJoin(bindings, ", "));
-    return absl::StrFormat("IfExpr(bindings=%s, subexpr=%s)", bs,
-                           subexpr_->str());
+
+    std::string operator()(const BoolExpr& e) const {
+        return std::to_string(e.value);
+    }
+
+    std::string operator()(const SymbolExpr& e) const {
+        return "Symbol(" + e.name + ")";
+    }
+
+    std::string operator()(const IfExpr& e) const {
+        return "If(" + to_string(*e.cond) + ", " + to_string(*e.conseq) + ", " +
+               to_string(*e.alt) + ")";
+    }
+
+    std::string operator()(const LetExpr& e) const {
+        std::string s = "Let(";
+        for (const auto& [k, v] : e.bindings) {
+            s.append("[" + k + " -> " + to_string(v) + "]");
+        }
+        return s + ")";
+    }
+};
+
+std::string to_string(const Expr& expr) {
+    static const Printer printer;
+    return std::visit(printer, expr);
+}
+
+std::string to_string(const Stmt& stmt) {
+    static const Printer printer;
+    return std::visit(printer, stmt);
 }

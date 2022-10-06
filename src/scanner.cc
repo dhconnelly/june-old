@@ -20,9 +20,33 @@ bool is_symbol(char ch) {
 bool is_numeric(char ch) { return '0' <= ch && ch <= '9'; }
 
 bool is_terminating(std::optional<char> ch) {
-    return !ch.has_value() || is_whitespace(ch.value()) || ch.value() == ')';
+    return !ch.has_value() || is_whitespace(*ch) || *ch == ')';
 }
 }  // namespace
+
+class Scanner final {
+public:
+    // |text| must outlive the constructed Scanner
+    Scanner(std::string_view text) : text_(text) {}
+    absl::StatusOr<std::optional<Token>> next();
+    bool at_end() const { return pos_ >= text_.size(); }
+
+private:
+    absl::Status invalid(std::string_view message) const;
+    Token token(TokenType typ) const;
+
+    std::optional<char> peek() const;
+    std::optional<char> advance();
+    std::string_view peek_cargo() const;
+
+    absl::StatusOr<Token> symbol();
+    absl::StatusOr<Token> number();
+
+    int start_ = 0;
+    int pos_ = 0;
+    int line_ = 1;
+    std::string_view text_;
+};
 
 std::optional<char> Scanner::advance() {
     return at_end() ? std::nullopt : std::optional{text_[pos_++]};
@@ -56,8 +80,8 @@ absl::StatusOr<Token> Scanner::symbol() {
     while (true) {
         auto ch = peek();
         if (is_terminating(ch)) break;
-        if (!is_symbol(ch.value()) && !is_numeric(ch.value())) {
-            return invalid(absl::StrFormat("invalid symbol: %c", ch.value()));
+        if (!is_symbol(*ch) && !is_numeric(*ch)) {
+            return invalid(absl::StrFormat("invalid symbol: %c", *ch));
         }
         advance();
     }
@@ -68,8 +92,8 @@ absl::StatusOr<Token> Scanner::number() {
     while (true) {
         auto ch = peek();
         if (is_terminating(ch)) break;
-        if (!is_numeric(ch.value())) {
-            return invalid(absl::StrFormat("invalid symbol: %c", ch.value()));
+        if (!is_numeric(*ch)) {
+            return invalid(absl::StrFormat("invalid symbol: %c", *ch));
         }
         advance();
     }
@@ -79,7 +103,7 @@ absl::StatusOr<Token> Scanner::number() {
 absl::StatusOr<std::optional<Token>> Scanner::next() {
     start_ = pos_;
     while (!at_end()) {
-        char ch = advance().value();
+        char ch = *advance();
         switch (ch) {
             case '\n': line_++;
             case ' ':
@@ -101,8 +125,8 @@ absl::StatusOr<std::optional<Token>> Scanner::next() {
             }
 
             default: {
-                if (is_numeric(ch) || (ch == '-' && peek().has_value() &&
-                                       is_numeric(peek().value()))) {
+                if (is_numeric(ch) ||
+                    (ch == '-' && peek().has_value() && is_numeric(*peek()))) {
                     return number();
                 }
                 if (is_symbol(ch)) return symbol();
@@ -120,7 +144,7 @@ absl::StatusOr<std::vector<Token>> scan(std::string_view text) {
         auto tok = scan.next();
         if (!tok.ok()) return tok.status();
         if (!tok->has_value()) break;
-        toks.push_back(tok->value());
+        toks.push_back(**tok);
     }
     return toks;
 }

@@ -20,6 +20,30 @@ absl::Status invalid(TokenType want, const Token& tok) {
 }
 }  // namespace
 
+class Parser final {
+public:
+    // |toks| must outlive the constructed Parser
+    explicit Parser(const std::vector<Token>& toks) : toks_(toks) {}
+    bool at_end() const { return pos_ >= toks_.size(); }
+
+    absl::StatusOr<Stmt> stmt();
+    absl::StatusOr<Expr> expr();
+    absl::StatusOr<BoolExpr> bool_lit();
+    absl::StatusOr<IntExpr> int_lit();
+    absl::StatusOr<IfExpr> if_expr();
+    absl::StatusOr<LetExpr> let_expr();
+    absl::StatusOr<SymbolExpr> symbol_expr();
+
+private:
+    std::optional<const Token*> peek(int n = 0) const;
+    bool peek_is(TokenType typ, int n = 0) const;
+    std::optional<Token> advance();
+    absl::StatusOr<Token> match(TokenType typ);
+
+    const std::vector<Token>& toks_;
+    int pos_ = 0;
+};
+
 std::optional<const Token*> Parser::peek(int n) const {
     return pos_ + n >= toks_.size() ? std::nullopt
                                     : std::optional{&toks_[pos_ + n]};
@@ -27,7 +51,7 @@ std::optional<const Token*> Parser::peek(int n) const {
 
 bool Parser::peek_is(TokenType typ, int n) const {
     auto tok = peek(n);
-    return tok.has_value() && tok.value()->typ == typ;
+    return tok.has_value() && (*tok)->typ == typ;
 }
 
 std::optional<Token> Parser::advance() {
@@ -37,11 +61,11 @@ std::optional<Token> Parser::advance() {
 absl::StatusOr<Token> Parser::match(TokenType want) {
     auto tok = peek();
     if (!tok) return unexpected_eof();
-    if (tok.value()->typ != want) return invalid(want, *tok.value());
-    return advance().value();
+    if ((*tok)->typ != want) return invalid(want, **tok);
+    return *advance();
 }
 
-absl::StatusOr<std::unique_ptr<BoolLiteral>> Parser::bool_lit() {
+absl::StatusOr<BoolExpr> Parser::bool_lit() {
     auto tok = match(TokenType::Bool);
     if (!tok.ok()) return tok.status();
     auto bool_value = [&tok]() -> absl::StatusOr<bool> {
@@ -50,10 +74,10 @@ absl::StatusOr<std::unique_ptr<BoolLiteral>> Parser::bool_lit() {
         return invalid(TokenType::Bool, *tok);
     }();
     if (!bool_value.ok()) return bool_value.status();
-    return std::make_unique<BoolLiteral>(tok->line, bool_value.value());
+    return BoolExpr{.line = tok->line, .value = *bool_value};
 }
 
-absl::StatusOr<std::unique_ptr<IntLiteral>> Parser::int_lit() {
+absl::StatusOr<IntExpr> Parser::int_lit() {
     auto tok = match(TokenType::Int);
     if (!tok.ok()) return tok.status();
     int int_value;
@@ -63,16 +87,16 @@ absl::StatusOr<std::unique_ptr<IntLiteral>> Parser::int_lit() {
         return err(tok->line,
                    absl::StrFormat("int out of range: %s", tok->cargo));
     }
-    return std::make_unique<IntLiteral>(tok->line, int_value);
+    return IntExpr{.line = tok->line, .value = int_value};
 }
 
-absl::StatusOr<std::unique_ptr<SymbolExpr>> Parser::symbol_expr() {
+absl::StatusOr<SymbolExpr> Parser::symbol_expr() {
     auto tok = match(TokenType::Symbol);
     if (!tok.ok()) return tok.status();
-    return std::make_unique<SymbolExpr>(tok->line, tok->cargo);
+    return SymbolExpr{.line = tok->line, .name = tok->cargo};
 }
 
-absl::StatusOr<std::unique_ptr<IfExpr>> Parser::if_expr() {
+absl::StatusOr<IfExpr> Parser::if_expr() {
     auto tok = match(TokenType::Lparen);
     if (!tok.ok()) return tok.status();
     if (auto tok = match(TokenType::If); !tok.ok()) return tok.status();
@@ -84,18 +108,21 @@ absl::StatusOr<std::unique_ptr<IfExpr>> Parser::if_expr() {
     auto alt = expr();
     if (!alt.ok()) return alt.status();
     if (auto tok = match(TokenType::Rparen); !tok.ok()) return tok.status();
-    return std::make_unique<IfExpr>(tok.value().line, std::move(cond.value()),
-                                    std::move(cons.value()),
-                                    std::move(alt.value()));
+    return IfExpr{
+        .line = tok->line,
+        .cond = std::make_unique<Expr>(*std::move(cond)),
+        .conseq = std::make_unique<Expr>(*std::move(cons)),
+        .alt = std::make_unique<Expr>(*std::move(alt)),
+    };
 }
 
-absl::StatusOr<std::unique_ptr<LetExpr>> Parser::let_expr() {
+absl::StatusOr<LetExpr> Parser::let_expr() {
     auto tok = match(TokenType::Lparen);
     if (!tok.ok()) return tok.status();
     if (auto tok = match(TokenType::Let); !tok.ok()) return tok.status();
 
     // bindings
-    std::vector<Binding> bindings;
+    std::vector<std::pair<std::string, Expr>> bindings;
     if (auto tok = match(TokenType::Lparen); !tok.ok()) return tok.status();
     while (!peek_is(TokenType::Rparen)) {
         if (auto tok = match(TokenType::Lparen); !tok.ok()) return tok.status();
@@ -103,7 +130,7 @@ absl::StatusOr<std::unique_ptr<LetExpr>> Parser::let_expr() {
         if (!name.ok()) return name.status();
         auto binding = expr();
         if (!binding.ok()) return binding.status();
-        bindings.emplace_back(name.value().cargo, std::move(binding.value()));
+        bindings.emplace_back(name->cargo, *std::move(binding));
         if (auto tok = match(TokenType::Rparen); !tok.ok()) return tok.status();
     }
     if (auto tok = match(TokenType::Rparen); !tok.ok()) return tok.status();
@@ -113,14 +140,17 @@ absl::StatusOr<std::unique_ptr<LetExpr>> Parser::let_expr() {
     if (!subexpr.ok()) return subexpr.status();
 
     if (auto tok = match(TokenType::Rparen); !tok.ok()) return tok.status();
-    return std::make_unique<LetExpr>(tok.value().line, std::move(bindings),
-                                     std::move(subexpr.value()));
+    return LetExpr{
+        .line = tok->line,
+        .bindings = std::move(bindings),
+        .body = std::make_unique<Expr>(*std::move(subexpr)),
+    };
 }
 
-absl::StatusOr<std::unique_ptr<Expr>> Parser::expr() {
+absl::StatusOr<Expr> Parser::expr() {
     auto tok = peek();
-    if (!tok) return unexpected_eof();
-    switch (tok.value()->typ) {
+    if (!tok.has_value()) return unexpected_eof();
+    switch ((*tok)->typ) {
         case TokenType::Bool: return bool_lit();
         case TokenType::Int: return int_lit();
         case TokenType::Symbol: return symbol_expr();
@@ -128,24 +158,19 @@ absl::StatusOr<std::unique_ptr<Expr>> Parser::expr() {
             if (peek_is(TokenType::If, 1)) return if_expr();
             if (peek_is(TokenType::Let, 1)) return let_expr();
         }
-        default: return err(tok.value()->line, "invalid expr");
+        default: return err((*tok)->line, "invalid expr");
     }
 }
 
-absl::StatusOr<std::unique_ptr<Stmt>> Parser::stmt() {
-    auto e = expr();
-    if (!e.ok()) return e.status();
-    return std::make_unique<ExprStmt>(std::move(e.value()));
-}
+absl::StatusOr<Stmt> Parser::stmt() { return expr(); }
 
-absl::StatusOr<std::vector<std::unique_ptr<Stmt>>> parse(
-    const std::vector<Token>& toks) {
+absl::StatusOr<std::vector<Stmt>> parse(const std::vector<Token>& toks) {
     Parser parse(toks);
-    std::vector<std::unique_ptr<Stmt>> stmts;
+    std::vector<Stmt> stmts;
     while (!parse.at_end()) {
         auto st = parse.stmt();
         if (!st.ok()) return st.status();
-        stmts.push_back(std::move(st.value()));
+        stmts.push_back(*std::move(st));
     }
     return stmts;
 }

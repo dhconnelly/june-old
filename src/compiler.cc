@@ -1,27 +1,29 @@
 #include "compiler.h"
 
-absl::Status Compiler::visit(const ExprStmt& es) {
-    if (auto status = es.expr().accept(this); !status.ok()) return status;
+#include "absl/strings/str_format.h"
+
+absl::Status Compiler::operator()(const Stmt& es) {
+    if (auto status = std::visit(*this, es); !status.ok()) return status;
     if (interactive_) push(Opcode::Print);
     push(Opcode::Pop);
     return absl::OkStatus();
 }
 
-absl::Status Compiler::visit(const BoolLiteral& lit) {
+absl::Status Compiler::operator()(const BoolExpr& lit) {
     push(Opcode::Push);
-    push(BoolValue(lit.value()));
+    push(BoolValue(lit.value));
     return absl::OkStatus();
 }
 
-absl::Status Compiler::visit(const IntLiteral& lit) {
+absl::Status Compiler::operator()(const IntExpr& lit) {
     push(Opcode::Push);
-    push(IntValue(lit.value()));
+    push(IntValue(lit.value));
     return absl::OkStatus();
 }
 
-absl::Status Compiler::visit(const SymbolExpr& sym) {
+absl::Status Compiler::operator()(const SymbolExpr& sym) {
     // find stack distance to binding
-    const auto& name = sym.value();
+    const auto& name = sym.name;
     int dist = 0;
     bool found = false;
     for (auto it = scopes_.rbegin(); it != scopes_.rend(); ++it) {
@@ -36,23 +38,23 @@ absl::Status Compiler::visit(const SymbolExpr& sym) {
     }
     if (!found) {
         return absl::InvalidArgumentError(absl::StrFormat(
-            "[line %d] compiler: %s is not defined", sym.line(), name));
+            "[line %d] compiler: %s is not defined", sym.line, name));
     }
     push(Opcode::Get);
     IntValue(dist).serialize_value(&code_);
     return absl::OkStatus();
 }
 
-absl::Status Compiler::visit(const IfExpr& e) {
+absl::Status Compiler::operator()(const IfExpr& e) {
     // evaluate the condition and jump to the alternate if false
-    if (auto status = e.cond().accept(this); !status.ok()) return status;
+    if (auto status = std::visit(*this, *e.cond); !status.ok()) return status;
     push(Opcode::JmpIfNot);
     auto target1 = code_.size();
     // fill this in after we know there the alternate starts
     IntValue(0).serialize_value(&code_);
 
     // evaluate the consequent and jump over the alternate
-    if (auto status = e.cons().accept(this); !status.ok()) return status;
+    if (auto status = std::visit(*this, *e.conseq); !status.ok()) return status;
     push(Opcode::Jmp);
     auto target2 = code_.size();
     // fill this in after we know there the alternate starts
@@ -60,7 +62,7 @@ absl::Status Compiler::visit(const IfExpr& e) {
 
     // evaluate the alternate and fall through
     auto dest1 = code_.size();
-    if (auto status = e.alt().accept(this); !status.ok()) return status;
+    if (auto status = std::visit(*this, *e.alt); !status.ok()) return status;
     auto dest2 = code_.size();
 
     // update the jump destinations
@@ -70,15 +72,15 @@ absl::Status Compiler::visit(const IfExpr& e) {
     return absl::OkStatus();
 }
 
-absl::Status Compiler::visit(const LetExpr& e) {
+absl::Status Compiler::operator()(const LetExpr& e) {
     push_scope();
-    for (const auto& [name, expr] : e.bindings()) {
+    for (const auto& [name, expr] : e.bindings) {
         int pos = top_scope().size();
-        if (auto status = expr->accept(this); !status.ok()) return status;
+        if (auto status = std::visit(*this, expr); !status.ok()) return status;
         top_scope().emplace(name, pos);
     }
-    if (auto status = e.subexpr().accept(this); !status.ok()) return status;
-    for (int i = 0; i < e.bindings().size(); i++) {
+    if (auto status = std::visit(*this, *e.body); !status.ok()) return status;
+    for (int i = 0; i < e.bindings.size(); i++) {
         push(Opcode::Swap);
         push(Opcode::Pop);
     }
@@ -86,11 +88,15 @@ absl::Status Compiler::visit(const LetExpr& e) {
     return absl::OkStatus();
 }
 
+absl::Status Compiler::operator()(const Expr& e) {
+    return std::visit(*this, e);
+}
+
 absl::StatusOr<std::vector<char>> Compiler::compile(
-    const std::vector<std::unique_ptr<Stmt>>& stmts) {
+    const std::vector<Stmt>& stmts) {
     code_.clear();
     for (const auto& stmt : stmts) {
-        if (auto status = stmt->accept(this); !status.ok()) return status;
+        if (auto status = (*this)(stmt); !status.ok()) return status;
     }
     return code_;
 }

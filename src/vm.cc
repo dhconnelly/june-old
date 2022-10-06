@@ -29,15 +29,15 @@ absl::Status VM::push() {
     log("PUSH");
     auto value = read_typed_static<Value>();
     if (!value.ok()) return value.status();
-    log(absl::StrFormat(": [%s]", value.value()->str()));
-    stack_.push_back(std::move(value.value()));
+    log(absl::StrFormat(": [%s]", (*value)->str()));
+    stack_.push_back(*std::move(value));
     return absl::OkStatus();
 }
 
 absl::Status VM::pop() {
     log("POP");
     auto val = pop_stack<Value>();
-    log(absl::StrFormat("-> [%s]", val.value()->str()));
+    log(absl::StrFormat("-> [%s]", (*val)->str()));
     return val.status();
 }
 
@@ -52,8 +52,8 @@ absl::Status VM::jmp() {
     log("JMP");
     auto dest = read_static<IntValue>();
     if (!dest.ok()) return dest.status();
-    log(absl::StrFormat(": [%s]", dest.value()->str()));
-    pc_ = dest.value()->value();
+    log(absl::StrFormat(": [%s]", (*dest)->str()));
+    pc_ = (*dest)->value();
     return absl::OkStatus();
 }
 
@@ -61,12 +61,12 @@ absl::Status VM::jmp_if_not() {
     log("JMP_IF_NOT");
     auto dest = read_static<IntValue>();
     if (!dest.ok()) return dest.status();
-    log(absl::StrFormat(": [%s]", dest.value()->str()));
+    log(absl::StrFormat(": [%s]", (*dest)->str()));
     auto cond = pop_stack<BoolValue>();
     if (!cond.ok()) return cond.status();
-    log(absl::StrFormat("-> [%s]", cond.value()->str()));
-    if (cond.value()->value()) return absl::OkStatus();
-    pc_ = dest.value()->value();
+    log(absl::StrFormat("-> [%s]", (*cond)->str()));
+    if ((*cond)->value()) return absl::OkStatus();
+    pc_ = (*dest)->value();
     return absl::OkStatus();
 }
 
@@ -74,12 +74,12 @@ absl::Status VM::swap() {
     log("SWAP");
     auto val1 = pop_stack<Value>();
     if (!val1.ok()) return val1.status();
-    log(absl::StrFormat("-> [%s]", val1.value()->str()));
+    log(absl::StrFormat("-> [%s]", (*val1)->str()));
     auto val2 = pop_stack<Value>();
     if (!val2.ok()) return val2.status();
-    log(absl::StrFormat("-> [%s]", val2.value()->str()));
-    push_stack(std::move(val1.value()));
-    push_stack(std::move(val2.value()));
+    log(absl::StrFormat("-> [%s]", (*val2)->str()));
+    push_stack(*std::move(val1));
+    push_stack(*std::move(val2));
     return absl::OkStatus();
 }
 
@@ -87,11 +87,11 @@ absl::Status VM::get() {
     log("GET");
     auto n = read_static<IntValue>();
     if (!n.ok()) return n.status();
-    auto val = stack_get(n.value()->value());
+    auto val = stack_get((*n)->value());
     if (!val.has_value()) {
         return absl::FailedPreconditionError("stack offset out of bounds");
     }
-    push_stack(std::move(val.value()));
+    push_stack(*std::move(val));
     return absl::OkStatus();
 }
 
@@ -100,7 +100,7 @@ absl::Status VM::step() {
     instr_pc_ = pc_;
     auto op = deserialize_opcode((*code_)[pc_++]);
     if (!op.ok()) return invalid(op.status().message());
-    switch (op.value()) {
+    switch (*op) {
         case Opcode::Push: return push();
         case Opcode::Pop: return pop();
         case Opcode::Print: return print();
@@ -109,7 +109,7 @@ absl::Status VM::step() {
         case Opcode::Swap: return swap();
         case Opcode::Get: return get();
     }
-    return invalid(absl::StrFormat("unsupported opcode: %d", op.value()));
+    return invalid(absl::StrFormat("unsupported opcode: %d", *op));
 }
 
 void VM::log(std::string_view msg) const {
