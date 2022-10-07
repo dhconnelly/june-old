@@ -18,3 +18,9 @@ http_archive(
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 
 bazel_skylib_workspace()
+
+http_archive(
+    name = "com_google_googletest",
+    strip_prefix = "googletest-release-1.12.1",
+    urls = ["https://github.com/google/googletest/archive/refs/tags/release-1.12.1.zip"],
+)

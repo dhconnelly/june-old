@@ -25,6 +25,10 @@ supports both interactive and batch execution:
 
     ./bazel-bin/src/june [file]
 
+## running tests
+
+    bazel test //test/...
+
 ## status
 
 under active development
@@ -51,23 +55,15 @@ features:
 
 tech debt:
 
-- refactor to std::variant
-- clean up public interfaces
+- c++: audit const, member initialization
+- c++: refactor values to std::variant
+- c++: improve (de)serialization interfaces
+- c++: use std::span instead of std::vector parameters
+- c++: use more stl algorithms
+- c++: use concepts?
 - error handling: move error factories out of classes
 - error handling: use more diverse error types
-- error handling: improve error propagation and use some exceptions
+- error handling: improve error propagation
 - error handling: better error messages when parsing exprs
-- vm: keep values directly in the stack instead of unique_ptrs
 - vm: move interactive mode setting to vm
-- compiler/vm: standardize instruction argument passing
 - compiler/vm: create instruction abstraction
-- use std::span instead of std::vector parameters
-- use more stl algorithms
-- use C++20 concepts?
-- add tests
-- improve stack: https://www.craftinginterpreters.com/optimization.html
-
-extensions:
-
-- compile to wasm and wrap in a ts library
-- add wasm generation backend
